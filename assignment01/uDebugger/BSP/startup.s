@@ -157,52 +157,28 @@ UnusedIrqHandler
 // passes them to a function to print them. It then returns to
 // the GenerateFault function.
 HardFaultIrqHandler
-      // TODO: Fill in the missing code below
       
       // Save LR to stack since we will be calling a function below
-      // <your code here>
-      //PUSH {R0-R3,R12,LR}
       PUSH {LR}
+	  
       // Copy the PC and LR values from the stack to R0 and R1 respectively.
             
       // Save location of PC to find our way back
       
       // Copy SP to R0
-      // <your code here>
       MOV R0, SP
-      //ADD R0, R0, #4
-      // Add offset to R0 so it points to location where PC was pushed on stack
+      
+	  // Add offset to R0 so it points to location where PC was pushed on stack
       // Make sure to account for anything other than LR that we push to the stack
-      // <your code here>
       ADD R0, R0, #28
 
       // Save R0 to stack since we will want to reference it later
-      // <your code here>
       PUSH {R0}
       
       // Load pointer to stack contents to display in FaultPrint function
       MOV R0, SP
       ADD R0, R0, #8
-      
-      // Copy RO to R1
-      // <your code here>
-//      MOV R1, R0
-      
-      // Subtract 4 from R1 so it points to the stacked LR value
-      // <your code here>
-//      SUB R1, R1, #4
-      
-      // Load the data pointed to by R0 into R0
-      // <your code here>
-//      LDR R0, [R0]
-      
-      // Load the data pointed to by R1 into R1
-      // <your code here>
-//      LDR R1, [R1]
-      
-      // store all of the registers in g_buffer
-      
-      
+	  
       // Call FaultPrint() to print out the PC and LR values.
       // The arguments are passed in R0 and R1.
       BL        FaultPrint
@@ -219,16 +195,15 @@ HardFaultIrqHandler
       LDR       R1,=GenerateFault + 2
       
       // Restore R0 from stack. It points to PC in stack
-      // <your code here>
       POP {R0}
-      // Store R1 to address pointed to by R0
-      // <your code here>
+      
+	  // Store R1 to address pointed to by R0
       STR R1, [R0]
-      // Pop LR from stack
-      // <your code here>
+      
+	  // Pop LR from stack
       POP {LR}      
-      //POP {R0-R3,R12,LR}
-      // Return from exception handler
+      
+	  // Return from exception handler
       BX        LR
             
       PUBLIC  ResetIrqHandler
