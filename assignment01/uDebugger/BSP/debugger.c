@@ -12,11 +12,6 @@
 //void FaultPrint(uint32_t pc, uint32_t lr)
 void FaultPrint(uint32_t reg_ptr[8])
 {
-//    PrintString("Hard fault at PC=");
-//    PrintHex(pc);
-//    PrintString(" LR=");
-//    PrintHex(lr);
-//    PrintString("\n");
     uint8_t i;
     char reg_names[8][4] = {"R0", "R1", "R2", "R3", "R12", "LR", "PC", "PSR"};
     

@@ -1,0 +1,13 @@
+University of Washington - Debugger Test Application
+Hard fault at PC=08000A9C LR=08000AC3
+Hard fault at PC=08000A9C LR=08000AC3
+Hard fault at PC=08000A9C LR=08000AC3
+Hard fault at PC=08000A9C LR=08000AC3
+Hard fault at PC=08000A9C LR=08000AC3
+Hard fault at PC=08000A9C LR=08000AC3
+Hard fault at PC=08000A9C LR=08000AC3
+Hard fault at PC=08000A9C LR=08000AC3
+Hard fault at PC=08000A9C LR=08000AC3
+Hard fault at PC=08000A9C LR=08000AC3
+
+Success!

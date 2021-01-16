@@ -1,0 +1,1 @@
+#This assignment will print R0-R3, R12, LR, PC and PSR

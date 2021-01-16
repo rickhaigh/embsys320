@@ -1,0 +1,115 @@
+University of Washington - Debugger Test Application
+NOTE: Prints all registers instead of just LR and PC
+
+Hard fault register dump
+R0      00000001
+R1      00000001
+R2      0000000D
+R3      E000ED26
+R12     00000000
+LR      08000BFD
+PC      08000BD0
+PSR     81000000
+
+
+Hard fault register dump
+R0      00000002
+R1      00000002
+R2      0000000D
+R3      E000ED26
+R12     00000000
+LR      08000BFD
+PC      08000BD0
+PSR     81000000
+
+
+Hard fault register dump
+R0      00000003
+R1      00000003
+R2      0000000D
+R3      E000ED26
+R12     00000000
+LR      08000BFD
+PC      08000BD0
+PSR     81000000
+
+
+Hard fault register dump
+R0      00000004
+R1      00000004
+R2      0000000D
+R3      E000ED26
+R12     00000000
+LR      08000BFD
+PC      08000BD0
+PSR     81000000
+
+
+Hard fault register dump
+R0      00000005
+R1      00000005
+R2      0000000D
+R3      E000ED26
+R12     00000000
+LR      08000BFD
+PC      08000BD0
+PSR     81000000
+
+
+Hard fault register dump
+R0      00000006
+R1      00000006
+R2      0000000D
+R3      E000ED26
+R12     00000000
+LR      08000BFD
+PC      08000BD0
+PSR     81000000
+
+
+Hard fault register dump
+R0      00000007
+R1      00000007
+R2      0000000D
+R3      E000ED26
+R12     00000000
+LR      08000BFD
+PC      08000BD0
+PSR     81000000
+
+
+Hard fault register dump
+R0      00000008
+R1      00000008
+R2      0000000D
+R3      E000ED26
+R12     00000000
+LR      08000BFD
+PC      08000BD0
+PSR     81000000
+
+
+Hard fault register dump
+R0      00000009
+R1      00000009
+R2      0000000D
+R3      E000ED26
+R12     00000000
+LR      08000BFD
+PC      08000BD0
+PSR     81000000
+
+
+Hard fault register dump
+R0      0000000A
+R1      0000000A
+R2      0000000D
+R3      E000ED26
+R12     00000000
+LR      08000BFD
+PC      08000BD0
+PSR     81000000
+
+
+Success!
+

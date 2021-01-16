@@ -1,1 +1,1 @@
-#This project will output only the LR and PC registers
+# This uDebugger project will output only the LR and PC registers
