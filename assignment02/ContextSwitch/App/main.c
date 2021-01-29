@@ -10,17 +10,24 @@
 #include "print.h"
 #include "stack.h"
 
+// uncomment TEST_AND_SET to use lock for print functions
+#define TEST_AND_SET 0
+
 char clr_scrn[] = { 27, 91, 50, 74, 0 };              // esc[2J
 /* Public variables ----------------------------------------------------------*/
 PRINT_DEFINEBUFFER();           /* required for lightweight sprintf */
 /* Private prototype ---------------------------------------------------------*/
 void delay(uint32_t time);
+void get_lock_with_WFE(volatile unsigned int *Lock_Variable);
+void free_lock(volatile unsigned int *Lock_Variable);
 
 
 // Allocate space for two task stacks
 uint32_t stackOne[STACKSIZE];
 uint32_t stackTwo[STACKSIZE];
 
+// Lock variable used to prevent overrun during task switching
+volatile unsigned int g_lock = 0;
 
 // To manage the contexts of two tasks we need to keep track of
 // a separate stack for each task. The context of the task will 
@@ -47,9 +54,17 @@ void taskOne(void)
 	int count = 0;
 	while(1)
 	{
+#ifdef TEST_AND_SET
+        // use lock to make sure only one task has the print function at a time
+        get_lock_with_WFE(&g_lock);
+#endif
+        
 		PrintString("task one: ");
 		Print_uint32(count++);
 		PrintString("\n");
+#ifdef TEST_AND_SET
+        free_lock(&g_lock);
+#endif
 		int i;
 		for(i=0;i<100000;i++);    // delay
 	}
@@ -64,9 +79,17 @@ void taskTwo(void)
 	int count = 0xFFFFFFFF;
 	while(1)
 	{
+#ifdef TEST_AND_SET
+        // use lock to make sure only one task has the print function at a time
+        get_lock_with_WFE(&g_lock);
+#endif        
 		PrintString("task two: ");
 		Print_uint32(count--);
 		PrintString("\n");
+        
+#ifdef TEST_AND_SET
+        free_lock(&g_lock);
+#endif
 		int i;
 		for(i=0;i<100000;i++);    // delay
 	}
@@ -100,6 +123,28 @@ void scheduler(uint32_t sp)
 	}
 }
 
+
+// Function to gain a lock in MUTEX (mutual exclusive)/semaphore
+void get_lock_with_WFE(volatile unsigned int *Lock_Variable)
+{// Note: __LDREXW and __STREXW are functions in CMSIS-Core
+    int status;
+    do {
+        while ( __LDREXW(Lock_Variable) != 0){ // Wait until lock
+        __WFE();} // variable is free, if not, enter sleep until event
+        status = __STREXW(1, Lock_Variable);   // Try set Lock_Variable
+                                                // to 1 using STREX
+    } while (status != 0); // retry until lock successfully
+    __DMB(); // Data memory Barrier
+    return;
+}
+
+void free_lock(volatile unsigned int *Lock_Variable)
+{
+    __DMB(); // Data memory Barrier
+    *Lock_Variable = 0; // Free the lock
+    __SEV(); // Send Event to wake-up other processors
+    return;
+}
 
 void main() {
     Hw_init();
