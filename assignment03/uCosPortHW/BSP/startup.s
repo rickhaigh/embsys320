@@ -153,9 +153,44 @@ EXTI10Thru15IrqHandler
 UnusedIrqHandler           
       B         UnusedIrqHandler      ; Loop forever
 
-HardFaultIrqHandler
-      B         HardFaultIrqHandler
+;HardFaultIrqHandler
+;      B         HardFaultIrqHandler
+HardFaultIrqHandler      
+      // Save LR to stack since we will be calling a function below
+      PUSH {LR}
       
+      // Copy the PC and LR values from the stack to R0 and R1 respectively.
+      // Copy SP to R0
+      MOV R0, SP
+      
+      // Add offset to R0 so it points to stack location where PC was pushed on stack
+      // Make sure to account for anything other than LR that we push to the stack
+      ADD R0, R0, #28
+
+      // Save R0 to stack since we will want to reference it later
+      PUSH {R0}
+      
+      // Load pointer to stack contents to display in FaultPrint function
+      // Copy RO to R1
+      MOV R1, R0
+      
+      // Subtract 4 from R1 so it points to the stacked LR value
+      SUB R1, R1, #4
+      
+      // Load the data pointed to by R0 into R0
+      LDR R0, [R0]
+      
+      // Load the data pointed to by R1 into R1
+      LDR R1, [R1]      
+      
+      // Call FaultPrint() to print out the PC and LR values.
+      // The arguments are passed in R0 and R1.
+      ; BL        FaultPrint
+      
+HardFaultLoop
+      B HardFaultLoop
+
+
       PUBLIC  ResetIrqHandler
       EXTERN  main
       ; Define what happens at reset.

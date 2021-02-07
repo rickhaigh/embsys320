@@ -64,6 +64,10 @@ void StartupTask(void* pdata)
     OSTaskCreate(TaskTwo, (void*)0, &Task2Stk[APP_CFG_TASK_START_STK_SIZE-1], APP_TASK_TEST2_PRIO);
     OSTaskCreate(TaskThree, (void*)0, &Task3Stk[APP_CFG_TASK_START_STK_SIZE-1], APP_TASK_TEST3_PRIO);
 
+    //OSPrioCur = OSPrioHighRdy;
+    //OSTCBCur->OSTCBStkPtr = OSTCBHighRdy->OSTCBStkPtr;
+    //OS_STK *test = OSTCBHighRdy->OSTCBStkPtr;
+    
     // Delete ourselves, letting the work be done in the new tasks.
     PrintWithBuf(buf, BUFSIZE, "StartupTask: deleting self\n");
 	OSTaskDel(OS_PRIO_SELF);

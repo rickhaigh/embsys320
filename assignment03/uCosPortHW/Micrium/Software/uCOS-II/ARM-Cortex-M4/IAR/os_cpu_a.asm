@@ -210,28 +210,30 @@ ContextSwitch
     
     // Copy process stack pointer to R0
     // <Your code here>
-    MRS     R0, PSP                 ; R0 = PSP
+    MRS     R0, PSP             ; R0 = PSP
     
     // Subtract 4 and set APSR flags
     // <Your code here>
-    SUBS    R0, R0, #4              ; R0 = R0 - 4
+    MOV     R1, #0              ; Use this if PSP == 4
+    SUBS    R0, R0, #4          ; R0 = R0 - 4
     
     // If R0==0 use conditional execution to set PSP to 0 and branch to 
     // ContextSwitch_AfterSave
     // <Your code here>
-    ITT     EQ                      ; test PSP - 4 == 0
-    MSREQ   PSP, R0                 ; THEN: PSP != 0, so set PSP = 0
-    BEQ     ContextSwitch_AfterSave ; THEN: Branch since PSP != 0
+    ITT     PL                      ; test PSP - 4 == 0
+    MSRPL   PSP, R1                 ; THEN: PSP != 0, so set PSP = 0
+    BPL     ContextSwitch_AfterSave ; THEN: Branch since PSP != 0
 
     // Save R4-R11 to main stack
     // <Your code here>
-    PUSH    {R4-R11}                ; ELSE
+    PUSH    {R4-R11}                
 
     // OSTCBCur->OSTCBStkPtr = SP
     // <Your code here>
     MOV     R0, SP
-    LDR     R1, =OSTCBCur   ; No offset needed since OSTCBStkPtr is first element in OSTCBCur structure
-    LDR     R0, [R1]        ; OSTCBCur = SP
+    LDR     R1, =OSTCBCur   ; Load address of OSTCBCur into R1
+    LDR     R1, [R1]        ; Dereference to get address of OSTCBStkPtr
+    STR     R0, [R1]        ; OSTCBCur->OSTCBStkPtr = SP
 
     // At this point, entire context of task has been saved
     
@@ -239,25 +241,31 @@ ContextSwitch_AfterSave
 
     // Call OSTaskSwHook();
     // <Your code here>
-    B       OSTaskSwHook
+    BL       OSTaskSwHook
 
     // OSPrioCur = OSPrioHighRdy;
     // <Your code here>
-    LDR     R2, =OSPrioCur
-    LDR     R3, =OSPrioHighRdy
-    LDR     R3, [R2]        ; OSPrioCur = OSPrioHighRdy
+    LDR     R1, =OSPrioCur      ; pointer to byte
+    LDR     R2, =OSPrioHighRdy  ; pointer to byte
+    LDRB    R3, [R2]        ; R3 gets OSPrioHighRdy, R2 holds addr of OSPrioHighRdy
+    STRB    R3, [R1]        ; OSPrioCur = OSPrioHighRdy
 
-    // OSTCBCur  = OSTCBHighRdy;
+    // OSTCBCur  = OSTCBHighRdy; **structures**
     // <Your code here>
+    LDR     R0, =OSTCBHighRdy
+    LDR     R1, [R0]        ; R1 = addr pointed to by OSTCBHighRdy
+    LDR     R1, [R1]
     LDR     R2, =OSTCBCur
-    LDR     R3, =OSTCBHighRdy
-    LDR     R3, [R2]        ; OSTCBCur = OSTCBHighRdy
+    LDR     R2, [R2]        ; R2 = addr pointed to by OSTCBHighRdy
+    STR     R1, [R2]        ; OSTCBCur = OSTCBHighRdy (value)
 
     // SP = OSTCBHighRdy->OSTCBStkPtr;
     // <Your code here>
-    MOV     R0, SP
-    LDR     R1, =OSTCBHighRdy
-    LDR     R1, [R0]
+    ;MOV     R0, SP
+    ;LDR     R1, =OSTCBHighRdy
+    ;LDR     R1, [R1]        ; R1 = addr pointed to by OSTCBHighRdy
+    ;LDR     R1, [R1]        ; R1 = dereferenced pointer above
+    MOV     SP, R1         ; SP = OSTCBHighRdy->OSTCBStkPtr
     
     // Restore R4-R11
     // <Your code here>

@@ -31,7 +31,10 @@ char clr_scrn[] = { 27, 91, 50, 74, 0 };              // esc[2J
 // Allocate the print buffer
 PRINT_DEFINEBUFFER();
 
-
+int ricktest_int2 = 0xA0A0A0A0;
+int ricktest_int  = 0x00EFBEEF;
+uint8_t rick3 = 130;
+uint8_t rick4 = 120;
 /************************************************************************************
 
 Routine Description:
@@ -48,7 +51,10 @@ Return Value:
 
 ************************************************************************************/
 void main() {
-INT8U err;
+    
+    int a = 4;
+    
+    INT8U err;
     Hw_init();
     
     PrintString(clr_scrn); /* Clear entire screen */
@@ -77,6 +83,12 @@ INT8U err;
         while(OS_TRUE);  //park on error
     }
 
+    if (a == 4) {
+        a = 0;
+    } else {
+        a = 1;
+    }
+    
     DEBUGMSG(1, ("Starting multi-tasking.\n"));
 
     // start the OS
