@@ -51,9 +51,6 @@ Return Value:
 
 ************************************************************************************/
 void main() {
-    
-    int a = 4;
-    
     INT8U err;
     Hw_init();
     
@@ -81,12 +78,6 @@ void main() {
     if (err != OS_ERR_NONE) {
         DEBUGMSG(1, ("main: failed creating start up task: %d\n", err));
         while(OS_TRUE);  //park on error
-    }
-
-    if (a == 4) {
-        a = 0;
-    } else {
-        a = 1;
     }
     
     DEBUGMSG(1, ("Starting multi-tasking.\n"));

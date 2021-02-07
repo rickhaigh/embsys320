@@ -254,18 +254,13 @@ ContextSwitch_AfterSave
     // <Your code here>
     LDR     R0, =OSTCBHighRdy
     LDR     R1, [R0]        ; R1 = addr pointed to by OSTCBHighRdy
-    LDR     R1, [R1]
     LDR     R2, =OSTCBCur
-    LDR     R2, [R2]        ; R2 = addr pointed to by OSTCBHighRdy
     STR     R1, [R2]        ; OSTCBCur = OSTCBHighRdy (value)
 
     // SP = OSTCBHighRdy->OSTCBStkPtr;
     // <Your code here>
-    ;MOV     R0, SP
-    ;LDR     R1, =OSTCBHighRdy
-    ;LDR     R1, [R1]        ; R1 = addr pointed to by OSTCBHighRdy
-    ;LDR     R1, [R1]        ; R1 = dereferenced pointer above
-    MOV     SP, R1         ; SP = OSTCBHighRdy->OSTCBStkPtr
+    LDR     R1, [R1]        ; Dereferencing R1 again with, R1 setup from previous code block
+    MOV     SP, R1          ; SP = OSTCBHighRdy->OSTCBStkPtr
     
     // Restore R4-R11
     // <Your code here>
