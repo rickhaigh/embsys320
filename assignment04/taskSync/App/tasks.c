@@ -55,12 +55,6 @@ void TaskRxFlags(void* pdata);
 // Useful functions
 void printWithBuf(char *buf, int size, char *format, ...);
 
-OS_EVENT *semPrint;
-OS_EVENT *mboxA;
-OS_EVENT *mboxB;
-OS_FLAG_GRP *rxFlags;
-
-
 // message queue components
 
 #define QMAXENTRIES 4            // maximum entries in the queue
@@ -81,6 +75,11 @@ OS_FLAG_GRP *rxFlags = 0;
 INT32U TaskMBRxA_msgCount = 0;
 INT32U TaskMBRxB_msgCount = 0;
 
+OS_EVENT *semPrint;
+int sharedRes;      // used in semaphores 
+
+OS_EVENT *mboxA;
+OS_EVENT *mboxB;
 
 /************************************************************************************
 
@@ -100,13 +99,14 @@ void StartupTask(void* pdata)
     printWithBuf(buf, BUFSIZE, "StartupTask: Creating application tasks\n");
 
     // TODO semPrint 01: add code here to create semaphore semPrint as a binary semaphore
-
+    semPrint = OSSemCreate(1);
+    
 	// TODO Mailbox 01: add code here to create 2 mailboxes mboxA and mboxB, initially empty
     mboxA = OSMboxCreate(NULL);
     mboxB = OSMboxCreate(NULL);
     
 	// TODO Queue 01: add code here to create qMsg as a uCOS queue that uses qMsgVPtrs to store queue entry pointers
-
+    
 	// TODO Queue 02: add code here to create qMsgMemPart as a uCOS memory partition containing a pool
 	// of QMAXENTRIES messages where each entry is of type QMsg_t
 
@@ -520,9 +520,11 @@ void printWithBuf(char *buf, int size, char *format, ...)
     vsnprintf(buf, size, format, args);
 
     // TODO semPrint 02: place the call to PrintString in a critical section using semaphore semPrint
-
+    OSSemPend(semPrint, 0, &err);
+    //sharedRes += 1;   
     PrintString(buf);
-
+    OSSemPost(semPrint);
+    
     va_end(args);
 }
 
