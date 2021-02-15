@@ -64,11 +64,11 @@ typedef struct                   // a queue entry
 	char *msg;
 }QMsg_t;
 
-OS_EVENT * qMsg;                 // pointer to a uCOS message queue
+OS_EVENT *qMsg;                  // pointer to a uCOS message queue
 void * qMsgVPtrs[QMAXENTRIES];   // an array of void pointers which is the actual queue
 QMsg_t qMsgBlocks[QMAXENTRIES];  // a pool of message nodes that may be used as queue entries
 OS_MEM *qMsgMemPart;             // pointer to a uCOS memory partition to manage the pool of message nodes
-
+        
 // Event flags for synchronizing mailbox messages
 OS_FLAG_GRP *rxFlags = 0;
 
@@ -76,7 +76,6 @@ INT32U TaskMBRxA_msgCount = 0;
 INT32U TaskMBRxB_msgCount = 0;
 
 OS_EVENT *semPrint;
-int sharedRes;      // used in semaphores 
 
 OS_EVENT *mboxA;
 OS_EVENT *mboxB;
@@ -92,7 +91,9 @@ void StartupTask(void* pdata)
 	char buf[BUFSIZE];
 	printWithBuf(buf, BUFSIZE, "StartupTask: Begin\n");
 	printWithBuf(buf, BUFSIZE, "StartupTask: Starting timer tick\n");
-
+    
+    uint8_t err;
+    
     // Start the system tick
     SetSysTick(OS_TICKS_PER_SEC);
 
@@ -106,12 +107,12 @@ void StartupTask(void* pdata)
     mboxB = OSMboxCreate(NULL);
     
 	// TODO Queue 01: add code here to create qMsg as a uCOS queue that uses qMsgVPtrs to store queue entry pointers
-    
+    qMsg = OSQCreate(qMsgVPtrs, QMAXENTRIES);
 	// TODO Queue 02: add code here to create qMsgMemPart as a uCOS memory partition containing a pool
 	// of QMAXENTRIES messages where each entry is of type QMsg_t
-
+    qMsgMemPart = OSMemCreate(qMsgBlocks, QMAXENTRIES, sizeof(QMsg_t), &err);
+    
 	// TODO EventFlags 01: add code here to create event flag 'group' rxFlags
-    uint8_t err;
     rxFlags = OSFlagCreate(0x00, &err);
 
     // The maximum of tasks the application can have is defined by OS_MAX_TASKS in os_cfg.h
@@ -119,9 +120,9 @@ void StartupTask(void* pdata)
     OSTaskCreate(TaskMBTx,  (void*)0, (void*)&TaskMBTxStk[APP_CFG_TASK_START_STK_SIZE-1], pri++);
     OSTaskCreate(TaskMBRxA, (void*)0, (void*)&TaskMBRxAStk[APP_CFG_TASK_START_STK_SIZE-1], pri++);
     OSTaskCreate(TaskMBRxB, (void*)0, (void*)&TaskMBRxBStk[APP_CFG_TASK_START_STK_SIZE-1], pri++);
-    //OSTaskCreate(TaskQTxA, (void*)0, (void*)&TaskQTxAStk[APP_CFG_TASK_START_STK_SIZE-1], pri++);
-    //OSTaskCreate(TaskQTxB, (void*)0, (void*)&TaskQTxBStk[APP_CFG_TASK_START_STK_SIZE-1], pri++);
-    //OSTaskCreate(TaskQRx, (void*)0, (void*)&TaskQRxStk[APP_CFG_TASK_START_STK_SIZE-1], pri++);
+    OSTaskCreate(TaskQTxA, (void*)0, (void*)&TaskQTxAStk[APP_CFG_TASK_START_STK_SIZE-1], pri++);
+    OSTaskCreate(TaskQTxB, (void*)0, (void*)&TaskQTxBStk[APP_CFG_TASK_START_STK_SIZE-1], pri++);
+    OSTaskCreate(TaskQRx, (void*)0, (void*)&TaskQRxStk[APP_CFG_TASK_START_STK_SIZE-1], pri++);
     OSTaskCreate(TaskRxFlags, (void*)0, (void*)&TaskRxFlagsStk[APP_CFG_TASK_START_STK_SIZE-1], pri++);
 
     // Delete ourselves, letting the work be done in the new tasks.
@@ -294,24 +295,25 @@ void TaskQTxA(void* pdata)
 
     for (i = 0; i < TASKLOOPLIMIT; i++)
     {
-//		// allocate a queue entry
-//		pQmsgToSend = (QMsg_t*) OSMemGet(qMsgMemPart, &err);
-//		if (err != OS_ERR_NONE)
-//		{
-//			printWithBuf(buf, BUFSIZE, "Not enough message blocks");
-//			while (OS_TRUE);
-//		}
-//
-//		pQmsgToSend->msg = (char*)msg[i];
-//		err = OS_ERR_NONE;
-//		do
-//		{
-//			OSTimeDly(5);
-//
-//			// TODO Queue 03: first uncomment this code block (highlight and hit Ctrl-Shift-K)
-//    	    // then add code here to send pQmsgToSend to TaskQRx using qMsg
-//
-//		} while (err == OS_ERR_Q_FULL);
+		// allocate a queue entry
+		pQmsgToSend = (QMsg_t*) OSMemGet(qMsgMemPart, &err);
+		if (err != OS_ERR_NONE)
+		{
+			printWithBuf(buf, BUFSIZE, "Not enough message blocks");
+			while (OS_TRUE);
+		}
+
+		pQmsgToSend->msg = (char*)msg[i];
+		err = OS_ERR_NONE;
+		do
+		{
+			OSTimeDly(5);
+
+			// TODO Queue 03: first uncomment this code block (highlight and hit Ctrl-Shift-K)
+    	    // then add code here to send pQmsgToSend to TaskQRx using qMsg
+            // Note: send the struct and not just the ->msg
+            err = OSQPost(qMsg, pQmsgToSend);
+		} while (err == OS_ERR_Q_FULL);
 
         printWithBuf(buf, BUFSIZE, "TaskQTxA: sent msg %s\n", msg[i]);
 
@@ -346,23 +348,26 @@ void TaskQTxB(void* pdata)
 
     for (i = 0; i < TASKLOOPLIMIT; i++)
     {
-//		// allocate a queue entry
-//		QMsg_t *pQmsgToSend = OSMemGet(qMsgMemPart, &err);
-//		if (err != OS_ERR_NONE)
-//		{
-//			printWithBuf(buf, BUFSIZE, "Not enough message blocks");
-//			while (OS_TRUE);
-//		}
-//
-//		pQmsgToSend->msg = (char*)msg[i];
-//		do
-//		{
-//			OSTimeDly(5);
-//
-//			// TODO Queue 04: first uncomment this code block (highlight and hit Ctrl-Shift-K)
-//    	    // then add code here to send pQmsgToSend to TaskQRx using qMsg
-//
-//		} while (err == OS_ERR_Q_FULL);
+		// allocate a queue entry
+		QMsg_t *pQmsgToSend = OSMemGet(qMsgMemPart, &err);
+		if (err != OS_ERR_NONE)
+		{
+			printWithBuf(buf, BUFSIZE, "Not enough message blocks");
+			while (OS_TRUE);
+		}
+
+		pQmsgToSend->msg = (char*)msg[i];
+        err = OS_ERR_NONE;
+		do
+		{
+			OSTimeDly(5);
+
+			// TODO Queue 04: first uncomment this code block (highlight and hit Ctrl-Shift-K)
+    	    // then add code here to send pQmsgToSend to TaskQRx using qMsg
+            // Note: send the struct and not just the ->msg
+            err = OSQPost(qMsg, pQmsgToSend);
+
+		} while (err == OS_ERR_Q_FULL);
 
 		printWithBuf(buf, BUFSIZE, "TaskQTxB: sent msg %s\n", msg[i]);
 
@@ -387,6 +392,7 @@ void TaskQRx(void* pdata)
 	BOOLEAN isError = OS_FALSE;
 	QMsg_t *pQMsgReceived;
 	char msgReceived[3] = {"XX"};
+    QMsg_t temp_msg;  // temporary memory location for incoming message, so we have something to point to 
 
 	printWithBuf(buf, BUFSIZE, "TaskQRx: starting\n");
 
@@ -403,16 +409,16 @@ void TaskQRx(void* pdata)
 	// Receive messages from 2 tasks hence cycle TASKLOOPLIMIT twice
     for (i = 0; i < TASKLOOPLIMIT * 2; i++)
     {
-//    	// TODO Queue 05: first uncomment this code block (highlight and hit Ctrl-Shift-K)
-//    	// then add code here to receive a message in pQMsgReceived from qMsg
-//
-//    	memcpy(msgReceived, pQMsgReceived->msg, 3);
-//
-//		// free the queue msg so it can be reused
-//		OSMemPut(qMsgMemPart, pQMsgReceived);
-
+    	// TODO Queue 05: first uncomment this code block (highlight and hit Ctrl-Shift-K)
+    	// then add code here to receive a message in pQMsgReceived from qMsg
+        // Note: Copy the struct and not just the ->msg, OSQPend returns void pointer to a struct not a msg itself
+        pQMsgReceived = OSQPend(qMsg, 0, &err);
+    	memcpy(msgReceived, pQMsgReceived->msg, 3);
+        
+		// free the queue msg so it can be reused
+		OSMemPut(qMsgMemPart, pQMsgReceived);
 		printWithBuf(buf, BUFSIZE, "TaskQRx: received msg %s\n", msgReceived);
-
+    
  		// Verify that we received one of the expected messages
  		int j;
  		for (j = 0; j < 2 * TASKLOOPLIMIT; j++)
@@ -520,8 +526,7 @@ void printWithBuf(char *buf, int size, char *format, ...)
     vsnprintf(buf, size, format, args);
 
     // TODO semPrint 02: place the call to PrintString in a critical section using semaphore semPrint
-    OSSemPend(semPrint, 0, &err);
-    //sharedRes += 1;   
+    OSSemPend(semPrint, 0, &err);  
     PrintString(buf);
     OSSemPost(semPrint);
     
