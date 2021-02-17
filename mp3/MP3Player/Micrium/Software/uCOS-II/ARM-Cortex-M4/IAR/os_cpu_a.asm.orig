@@ -100,24 +100,19 @@ EXC_RET_MSP_THREAD EQU     0xFFFFFFF9                              ; Exception r
 OS_CPU_SR_Save
     // Capture current interrupt enable/disable status (PRIMASK)
     // <Your code here>
-    MRS     R0, PRIMASK
     
     // Disable interrupts
     // <Your code here>
-    CPSID   i
     
     // Return captured interrupt enable/disable status
     // <Your code here>
-    BX      LR
-    
+
 OS_CPU_SR_Restore
     // Restore argument in R0 to PRIMASK
     // <Your code here>
-    MSR     PRIMASK, R0
     
     // Return
     // <Your code here>
-    BX      LR
 
 
 ;********************************************************************************************************
@@ -201,7 +196,6 @@ OSIntCtxSw
 ContextSwitch
     // Disable interrupts
     // <Your code here>
-    CPSID   i
     
     // For the initial context switch we must not save the context.
     // To ensure this, PSP is used as a flag to indicate the initial context 
@@ -210,59 +204,38 @@ ContextSwitch
     
     // Copy process stack pointer to R0
     // <Your code here>
-    MRS     R0, PSP         ; R0 = PSP
     
     // Subtract 4 and set APSR flags
     // <Your code here>
-    MOV     R1, #0
-    SUBS    R0, R0, #4      ; R0 = R0 - 4
     
     // If R0==0 use conditional execution to set PSP to 0 and branch to 
     // ContextSwitch_AfterSave
     // <Your code here>
-    ITT     PL              ; Test PSP >= 0, PSP will only be >= 0 the first time; Every subsequent time it will be -4
-    MSRPL   PSP, R1         ; PSP = 0
-    BPL     ContextSwitch_AfterSave
 
     // Save R4-R11 to main stack
     // <Your code here>
-    PUSH    {R4-R11}
 
     // OSTCBCur->OSTCBStkPtr = SP
     // <Your code here>
-    LDR     R1, =OSTCBCur   ; memory location of beginning of structure
-    LDR     R1, [R1]        ; OSTCBStkPtr to stack
-    STR     SP, [R1]        ; OSTCBCur->OSTCBStkPtr = SP
+
     // At this point, entire context of task has been saved
     
 ContextSwitch_AfterSave
 
     // Call OSTaskSwHook();
     // <Your code here>
-    BL      OSTaskSwHook
 
     // OSPrioCur = OSPrioHighRdy;
     // <Your code here>
-    LDR     R1, =OSPrioCur      ; Location of byte
-    LDR     R2, =OSPrioHighRdy  ; Location of byte
-    LDRB    R3, [R2]            ; Dereference to get value
-    STRB    R3, [R1]            ; OSPrioCur = OSPrioHighRdy
 
-    // OSTCBCur = OSTCBHighRdy;
+    // OSTCBCur  = OSTCBHighRdy;
     // <Your code here>
-    LDR     R0, =OSTCBHighRdy
-    LDR     R1, [R0]        ; Dereference to get pointer to stack
-    LDR     R2, =OSTCBCur
-    STR     R1, [R2]        ; OSTCBCur = OSTCBHighRdy (StkPtr)
-    
+
     // SP = OSTCBHighRdy->OSTCBStkPtr;
     // <Your code here>
-    LDR     R1, [R1]        ; Dereference to get OSTCBHighRdy->OSTCBStkPtr
-    MOV     SP, R1          ; SP = OSTCBHighRdy->OSTCBStkPtr
     
     // Restore R4-R11
     // <Your code here>
-    POP     {R4-R11}
     
     // Ensure exception returns to Thread Mode and MSP
     MOV     LR, #EXC_RET_MSP_THREAD
