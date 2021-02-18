@@ -22,6 +22,7 @@ Module Description:
 #include <Adafruit_GFX.h>    // Core graphics library
 #include <Adafruit_ILI9341.h>
 #include <Adafruit_FT6206.h>
+#include "SD.h"
 
 Adafruit_ILI9341 lcdCtrl = Adafruit_ILI9341(); // The LCD controller
 
@@ -169,14 +170,20 @@ void LcdTouchDemoTask(void* pdata)
     
     PrintWithBuf(buf, BUFSIZE, "Initializing FT6206 touchscreen controller\n");
     
-    // DRIVER TODO
+    // DRIVER TODO - RJH
     // Open a HANDLE for accessing device PJDF_DEVICE_ID_I2C1
     // <your code here>
+    HANDLE hI2C = Open(PJDF_DEVICE_ID_I2C1, 0);
+    if (!PJDF_IS_VALID_HANDLE(hI2C)) while(1);
     // Call Ioctl on that handle to set the I2C device address to FT6206_ADDR
     // <your code here>
+    pjdfErr = Ioctl(hI2C, FT6206_ADDR, &hI2C, &length);
+    if(PJDF_IS_ERROR(pjdfErr)) while(1);
     // Call setPjdfHandle() on the touch contoller to pass in the I2C handle
     // <your code here>
-
+    PrintWithBuf(buf, BUFSIZE, "Initializing Touch I2C controller\n");
+    touchCtrl.setPjdfHandle(hI2C);
+    
     if (! touchCtrl.begin(40)) {  // pass in 'sensitivity' coefficient
         PrintWithBuf(buf, BUFSIZE, "Couldn't start FT6206 touchscreen controller\n");
         while (1);
@@ -244,6 +251,39 @@ void Mp3DemoTask(void* pdata)
     Mp3Init(hMp3);
     int count = 0;
     
+//    HANDLE hSD = Open(MP3_SD_DEVICE_ID, 0);
+//    if (!PJDF_IS_VALID_HANDLE(hSD)) while(1);
+//
+//    length = sizeof(HANDLE);
+//    pjdfErr = Ioctl(hMp3, PJDF_CTRL_MP3_SET_SD_HANDLE, &hSD, &length);
+//    if(PJDF_IS_ERROR(pjdfErr)) while(1);
+//    if(!SD.begin(hSD))
+//    {
+//        PrintWithBuf((buf, BUFSIZE, "Attempt to initialize SD card failed.\n");
+//    }
+//    
+//    File dir = SD.open("/");
+//    while (1)
+//    {
+//        while (1)
+//        {
+//            File entry = dir.openNextFile();
+//            if (!entry)
+//            {
+//                break;
+//            }
+//            if (entry.isDirectory())  // skip directories
+//            {
+//                entry.close();
+//                continue;
+//            }
+//                            
+//            Mp3StreamSDFile(hMp3, entry.name()); 
+//            
+//            entry.close();
+//        }
+//        dir.seek(0); // reset directory file to read again;
+//    }
     while (1)
     {
         OSTimeDly(500);

@@ -11,6 +11,8 @@
 #include "bsp.h"
 #include "pjdf.h"
 #include "pjdfInternal.h"
+#include <Adafruit_FT6206.h>
+#include "SD.h"
 
 // Control registers etc for I2C hardware
 typedef struct _PjdfContextI2C
@@ -49,9 +51,28 @@ static PjdfErrCode CloseI2C(DriverInternal *pDriver)
 // Returns: PJDF_ERR_NONE if there was no error, otherwise an error code.
 static PjdfErrCode ReadI2C(DriverInternal *pDriver, void* pBuffer, INT32U* pCount)
 {
-  // DRIVER TODO
-  // <your code here>
-  return PJDF_ERR_NONE;
+    // DRIVER TODO - RJH
+    // <your code here>
+    uint8_t i2cdat[16];
+    i2cdat[0] = 0;
+
+    OS_CPU_SR cpu_sr = 0;
+    OS_ENTER_CRITICAL();
+    I2C_start(I2C1, FT6206_ADDR<<1, LL_I2C_GENERATE_START_WRITE, 1);
+    I2C_write(I2C1, (uint8_t)0);  
+    BspI2c_WaitWithTimeoutReset(LL_I2C_IsActiveFlag_STOP, 1);
+    I2C_start(I2C1, FT6206_ADDR<<1, LL_I2C_GENERATE_START_READ, *pCount);
+    
+    uint8_t i;
+    for (i = 0; i < *pCount - 1; i++) 
+    {
+        i2cdat[i] = I2C_read_ack(I2C1);
+    }
+    i2cdat[i] = I2C_read_nack(I2C1);
+    BspI2c_WaitWithTimeoutReset(LL_I2C_IsActiveFlag_STOP, 1);
+    OS_EXIT_CRITICAL();
+
+    return PJDF_ERR_NONE;
 }
 
 
@@ -66,8 +87,23 @@ static PjdfErrCode ReadI2C(DriverInternal *pDriver, void* pBuffer, INT32U* pCoun
 // Returns: PJDF_ERR_NONE if there was no error, otherwise an error code.
 static PjdfErrCode WriteI2C(DriverInternal *pDriver, void* pBuffer, INT32U* pCount)
 {
-  // DRIVER TODO
-  // <your code here>
+    // DRIVER TODO - RJH
+    // <your code here>
+    OS_CPU_SR cpu_sr = 0;
+    OS_ENTER_CRITICAL();
+    
+    LL_I2C_ClearFlag_STOP(I2C1);
+    I2C_start(I2C1, FT6206_ADDR<<1, LL_I2C_GENERATE_START_WRITE, 1);
+    I2C_write(I2C1, ((uint8_t*)pBuffer)[0]);
+    BspI2c_WaitWithTimeoutReset(LL_I2C_IsActiveFlag_STOP, 1);
+    
+    LL_I2C_ClearFlag_STOP(I2C1);
+    I2C_start(I2C1, FT6206_ADDR<<1, LL_I2C_GENERATE_START_WRITE, *pCount);
+    I2C_write(I2C1, ((uint8_t*)pBuffer)[1]);
+    BspI2c_WaitWithTimeoutReset(LL_I2C_IsActiveFlag_STOP, 1);
+    
+    OS_EXIT_CRITICAL();
+    
   return PJDF_ERR_NONE;
 }
 
@@ -103,14 +139,14 @@ PjdfErrCode InitI2C(DriverInternal *pDriver, char *pName)
     // We may choose to handle multiple hardware instances of the I2C interface
     // each of which gets its own DriverInternal struct. Here we initialize 
     // the context of the I2C hardware instance specified by pName.
-    // DRIVER TODO
+    // DRIVER TODO - RJH
     // Uncomment the following if block:
-//    if (strcmp(pName, PJDF_DEVICE_ID_I2C1) == 0)
-//    {
-//        pDriver->maxRefCount = 1; // Maximum refcount allowed for the device
-//        pDriver->deviceContext = (void*) &i2c1Context;
-//        BspI2C1_init(); // init I2C1 hardware
-//    }
+    if (strcmp(pName, PJDF_DEVICE_ID_I2C1) == 0)
+    {
+        pDriver->maxRefCount = 1; // Maximum refcount allowed for the device
+        pDriver->deviceContext = (void*) &i2c1Context;
+        BspI2C1_init(); // init I2C1 hardware
+    }
   
     // Assign implemented functions to the interface pointers
     pDriver->Open = OpenI2C;
