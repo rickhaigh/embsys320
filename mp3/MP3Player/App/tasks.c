@@ -100,6 +100,12 @@ void StartupTask(void* pdata)
     length = sizeof(HANDLE);
     pjdfErr = Ioctl(hSD, PJDF_CTRL_SD_SET_SPI_HANDLE, &hSPI, &length);
     if(PJDF_IS_ERROR(pjdfErr)) while(1);
+    
+    // Start the SD card
+    if(!SD.begin(hSD))
+    {
+        PrintWithBuf(buf, BUFSIZE, "Attempt to initialize SD card failed.\n");
+    }
 
     // Create the test tasks
     PrintWithBuf(buf, BUFSIZE, "StartupTask: Creating the application tasks\n");
@@ -127,7 +133,9 @@ static void DrawLcdContents()
     lcdCtrl.setCursor(40, 60);
     lcdCtrl.setTextColor(ILI9341_WHITE);  
     lcdCtrl.setTextSize(2);
-    PrintToLcdWithBuf(buf, BUFSIZE, "Hello World!");
+    PrintToLcdWithBuf(buf, BUFSIZE, "EMBSYS 320\n");
+    lcdCtrl.setCursor(40, 80);
+    PrintToLcdWithBuf(buf, BUFSIZE, "MP3 Player");
 
     OS_EXIT_CRITICAL();
 
@@ -249,41 +257,34 @@ void Mp3DemoTask(void* pdata)
     // Send initialization data to the MP3 decoder and run a test
 	PrintWithBuf(buf, BUFSIZE, "Starting MP3 device test\n");
     Mp3Init(hMp3);
+
+#if 0    
+    File dir = SD.open("/");
+    while (1)
+    {
+        while (1)
+        {
+            File entry = dir.openNextFile();
+            if (!entry)
+            {
+                break;
+            }
+            if (entry.isDirectory())  // skip directories
+            {
+                entry.close();
+                continue;
+            }
+                            
+            Mp3StreamSDFile(hMp3, entry.name()); 
+            PrintWithBuf(buf, BUFSIZE, "Now Playing: %s\n", entry.name());
+            
+            entry.close();
+        }
+        dir.seek(0); // reset directory file to read again;
+    }
+#endif
+#if 1
     int count = 0;
-    
-//    HANDLE hSD = Open(MP3_SD_DEVICE_ID, 0);
-//    if (!PJDF_IS_VALID_HANDLE(hSD)) while(1);
-//
-//    length = sizeof(HANDLE);
-//    pjdfErr = Ioctl(hMp3, PJDF_CTRL_MP3_SET_SD_HANDLE, &hSD, &length);
-//    if(PJDF_IS_ERROR(pjdfErr)) while(1);
-//    if(!SD.begin(hSD))
-//    {
-//        PrintWithBuf((buf, BUFSIZE, "Attempt to initialize SD card failed.\n");
-//    }
-//    
-//    File dir = SD.open("/");
-//    while (1)
-//    {
-//        while (1)
-//        {
-//            File entry = dir.openNextFile();
-//            if (!entry)
-//            {
-//                break;
-//            }
-//            if (entry.isDirectory())  // skip directories
-//            {
-//                entry.close();
-//                continue;
-//            }
-//                            
-//            Mp3StreamSDFile(hMp3, entry.name()); 
-//            
-//            entry.close();
-//        }
-//        dir.seek(0); // reset directory file to read again;
-//    }
     while (1)
     {
         OSTimeDly(500);
@@ -291,6 +292,7 @@ void Mp3DemoTask(void* pdata)
         Mp3Stream(hMp3, (INT8U*)Train_Crossing, sizeof(Train_Crossing)); 
         PrintWithBuf(buf, BUFSIZE, "Done streaming sound file  count=%d\n", count);
     }
+#endif
 }
 
 

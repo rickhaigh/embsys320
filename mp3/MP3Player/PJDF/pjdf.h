@@ -27,8 +27,8 @@ typedef INT8S HANDLE;
 //    - RJH reference it under PJDF_DEVICE_IDS below
 //    - add a new pjdfInternal<mydevice>.c module to implement the pjdfInternal.h interface
 //    - RJH reference the Init() function of your driver in the driversInternal array in pjdf.c
-//    - add a new pjdfCtrl<mydevice>.h interface to define the Ioctl() functionality of your device
-//    - #include your pjdfCtrl<mydevice>.h in the present header file above
+//    - RJH add a new pjdfCtrl<mydevice>.h interface to define the Ioctl() functionality of your device
+//    - RJH #include your pjdfCtrl<mydevice>.h in the present header file above
 //    - add modules as needed to the BSP folder to keep board-dependent code out of your PJDF implementation
 
 // Master list of device drivers.
@@ -44,7 +44,7 @@ typedef INT8S HANDLE;
         PJDF_DEVICE_ID_MP3_VS1053, \
         PJDF_DEVICE_ID_LCD_ILI9341, \
         PJDF_DEVICE_ID_SD_ADAFRUIT, \
-        PJDF_DEVICE_ID_I2C1    
+        PJDF_DEVICE_ID_I2C1  
 
 // Driver error codes
 // Definition: all driver error codes are negative numbers except PJDF_ERR_NONE.
