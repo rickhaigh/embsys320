@@ -92,13 +92,17 @@ static PjdfErrCode WriteI2C(DriverInternal *pDriver, void* pBuffer, INT32U* pCou
     OS_CPU_SR cpu_sr = 0;
     OS_ENTER_CRITICAL();
     
+    // First send device address
     LL_I2C_ClearFlag_STOP(I2C1);
     I2C_start(I2C1, FT6206_ADDR<<1, LL_I2C_GENERATE_START_WRITE, 1);
+    // Second send Reg address
     I2C_write(I2C1, ((uint8_t*)pBuffer)[0]);
     BspI2c_WaitWithTimeoutReset(LL_I2C_IsActiveFlag_STOP, 1);
     
+    // Third send device address
     LL_I2C_ClearFlag_STOP(I2C1);
     I2C_start(I2C1, FT6206_ADDR<<1, LL_I2C_GENERATE_START_WRITE, *pCount);
+    // Fourth send data to Reg address from step 2
     I2C_write(I2C1, ((uint8_t*)pBuffer)[1]);
     BspI2c_WaitWithTimeoutReset(LL_I2C_IsActiveFlag_STOP, 1);
     

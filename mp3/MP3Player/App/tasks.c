@@ -185,7 +185,8 @@ void LcdTouchDemoTask(void* pdata)
     if (!PJDF_IS_VALID_HANDLE(hI2C)) while(1);
     // Call Ioctl on that handle to set the I2C device address to FT6206_ADDR
     // <your code here>
-    pjdfErr = Ioctl(hI2C, FT6206_ADDR, &hI2C, &length);
+    int arg[] = {FT6206_ADDR};
+    pjdfErr = Ioctl(hI2C, PJDF_CTRL_I2C_SET_DEVICE_ADDRESS, &arg, &length);
     if(PJDF_IS_ERROR(pjdfErr)) while(1);
     // Call setPjdfHandle() on the touch contoller to pass in the I2C handle
     // <your code here>

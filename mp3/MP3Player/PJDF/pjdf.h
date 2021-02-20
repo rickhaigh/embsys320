@@ -37,7 +37,7 @@ typedef INT8S HANDLE;
 #define PJDF_DEVICE_ID_MP3_VS1053   "/dev/mp3_vs1053"
 #define PJDF_DEVICE_ID_LCD_ILI9341   "/dev/lcd_ili9341"
 #define PJDF_DEVICE_ID_SD_ADAFRUIT   "/dev/sd_adafruit"
-#define PJDF_DEVICE_ID_I2C1   "/dev/sd_I2C1"
+#define PJDF_DEVICE_ID_I2C1   "/dev/sd_i2c1"
      
 #define PJDF_DEVICE_IDS \
         PJDF_DEVICE_ID_SPI1, \

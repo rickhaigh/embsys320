@@ -221,9 +221,9 @@ uint8_t Adafruit_FT6206::readRegister8(uint8_t reg) {
 
 void Adafruit_FT6206::writeRegister8(uint8_t reg, uint8_t val) {
     uint8_t buf[2];
-    buf[0] = reg;
-    buf[1] = val;
-    uint32_t count = 1;
+    buf[0] = reg;       // I2C register we are writing too
+    buf[1] = val;       // Value we are writing to the register above
+    uint32_t count = 1; // count of ???
 
     // DRIVER TODO - RJH
     // Uncomment the Write() call and migrate the following code to PjdfInternalI2C.c
