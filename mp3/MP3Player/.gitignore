@@ -32,7 +32,7 @@
 *.dSYM/
 
 Debug/
-Settings/
+#Settings/
 *.dep
 *.ewd
 *.pbi

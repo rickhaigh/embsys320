@@ -47,13 +47,19 @@ Adafruit_FT6206::Adafruit_FT6206() {
 /**************************************************************************/
 boolean Adafruit_FT6206::begin(uint8_t threshhold) {
   //Wire.begin();
-
+    
   // change threshhold to be higher/lower
   writeRegister8(FT6206_REG_THRESHHOLD, threshhold);
   writeRegister8(FT6206_REG_G_MODE, 1); // Set interrupt mode
-  
-  if ((readRegister8(FT6206_REG_VENDID) != 17) || (readRegister8(FT6206_REG_CHIPID) != 6)) 
-    return false;
+  uint8_t read_vendid = readRegister8(FT6206_REG_VENDID);
+  uint8_t read_chipid = readRegister8(FT6206_REG_CHIPID);
+  bool vendid = (read_vendid != 17);
+  bool chipid = (read_chipid != 6);
+  //if ((readRegister8(FT6206_REG_VENDID) != 17) || (readRegister8(FT6206_REG_CHIPID) != 6)) 
+  if (vendid || chipid)
+  {
+      return false;
+  }
   /* 
   Serial.print("Vend ID: "); Serial.println(readRegister8(FT6206_REG_VENDID));
   Serial.print("Chip ID: "); Serial.println(readRegister8(FT6206_REG_CHIPID));

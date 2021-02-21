@@ -259,7 +259,7 @@ void Mp3DemoTask(void* pdata)
 	PrintWithBuf(buf, BUFSIZE, "Starting MP3 device test\n");
     Mp3Init(hMp3);
 
-#if 0    
+#if 1   // Demo using mp3 files from SD card 
     File dir = SD.open("/");
     while (1)
     {
@@ -284,7 +284,7 @@ void Mp3DemoTask(void* pdata)
         dir.seek(0); // reset directory file to read again;
     }
 #endif
-#if 1
+#if 0 // simple mp3 demo using train_crossing mp3
     int count = 0;
     while (1)
     {

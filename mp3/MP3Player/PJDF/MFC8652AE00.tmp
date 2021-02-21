@@ -53,12 +53,10 @@ static PjdfErrCode ReadI2C(DriverInternal *pDriver, void* pBuffer, INT32U* pCoun
 {
     // DRIVER TODO - RJH
     // <your code here>
-    //static uint8_t i2cdat[16] = {0};         // init data buffer
-    uint8_t reg = *(uint8_t *)pBuffer;  // first value in pBuffer has the addr to read from
-   
-    //pBuffer = i2cdat;           // point pBuffer to local data buffer so we can send back the data we read  
-    //uint8_t reg = i2cdat[0];    //  store incomming register for use in write to device
-    //i2cdat[0] = 0;
+    uint8_t i2cdat[16];           // init data buffer
+    pBuffer = i2cdat;             // point pBuffer to local data buffer so we can send back the data we read  
+    uint8_t reg = i2cdat[0];   //  store incomming register for use in write to device
+    i2cdat[0] = 0;
 
 //    OS_ENTER_CRITICAL();
 //    I2C_start(I2C1, FT6206_ADDR<<1, LL_I2C_GENERATE_START_WRITE, 1);
@@ -83,9 +81,9 @@ static PjdfErrCode ReadI2C(DriverInternal *pDriver, void* pBuffer, INT32U* pCoun
     uint8_t i;
     for (i = 0; i < *pCount - 1; i++) 
     {
-        ((uint8_t*)pBuffer)[i] = I2C_read_ack(I2C1);
+        i2cdat[i] = I2C_read_ack(I2C1);
     }
-    ((uint8_t*)pBuffer)[i] = I2C_read_nack(I2C1);
+    i2cdat[i] = I2C_read_nack(I2C1);
     BspI2c_WaitWithTimeoutReset(LL_I2C_IsActiveFlag_STOP, 1);
     OS_EXIT_CRITICAL();
 
