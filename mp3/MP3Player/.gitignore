@@ -39,7 +39,7 @@ Debug/
 *.cout
 *.Debug.*
 *.sim
-*.map
+#*.map
 *.lst
 *.pdb
 

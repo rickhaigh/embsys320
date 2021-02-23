@@ -3,13 +3,13 @@
     <StLinkDriver>
         <stlinkserialNo>43224421</stlinkserialNo>
         <stlinkfoundProbes />
-        <stlinkResetStyle>0</stlinkResetStyle>
-        <stlinkResetStrategy>0</stlinkResetStrategy>
         <CStepIntDis>_ 0</CStepIntDis>
         <LeaveTargetRunning>_ 0</LeaveTargetRunning>
+        <stlinkResetStyle>0</stlinkResetStyle>
+        <stlinkResetStrategy>0</stlinkResetStrategy>
     </StLinkDriver>
     <DebugChecksum>
-        <Checksum>1253381979</Checksum>
+        <Checksum>3167472285</Checksum>
     </DebugChecksum>
     <Exceptions>
         <StopOnUncaught>_ 0</StopOnUncaught>
@@ -101,6 +101,19 @@
         <ShowTimeSum>1</ShowTimeSum>
         <SumSortOrder>0</SumSortOrder>
     </EventLog>
+    <DisassembleMode>
+        <mode>0</mode>
+    </DisassembleMode>
+    <Breakpoints2>
+        <Bp0>_ 0 "EMUL_CODE" "{$PROJ_DIR$\Adafruit\Adafruit_FT6206\Adafruit_FT6206.cpp}.52.3" 0 0 1 "" 0 "" 0</Bp0>
+        <Bp1>_ 0 "EMUL_CODE" "{$PROJ_DIR$\PJDF\pjdfInternalI2C.c}.121.5" 0 0 1 "" 0 "" 0</Bp1>
+        <Bp2>_ 0 "EMUL_CODE" "{$PROJ_DIR$\PJDF\pjdfInternalI2C.c}.90.5" 0 0 1 "" 0 "" 0</Bp2>
+        <Bp3>_ 0 "EMUL_CODE" "{$PROJ_DIR$\App\mp3Util.c}.206.1" 0 0 1 "" 0 "" 0</Bp3>
+        <Bp4>_ 0 "EMUL_CODE" "{$PROJ_DIR$\App\mp3Util.c}.189.1" 0 0 1 "" 0 "" 0</Bp4>
+        <Bp5>_ 0 "EMUL_CODE" "{$PROJ_DIR$\App\mp3Util.c}.143.5" 0 0 1 "" 0 "" 0</Bp5>
+        <Bp6>_ 0 "EMUL_CODE" "{$PROJ_DIR$\App\mp3Util.c}.33.5" 0 0 1 "" 0 "" 0</Bp6>
+        <Count>7</Count>
+    </Breakpoints2>
     <TermIOLog>
         <LoggingEnabled>_ 0</LoggingEnabled>
         <LogFile>_ ""</LogFile>
@@ -110,6 +123,10 @@
         <LogFile>_ ""</LogFile>
         <Category>_ 0</Category>
     </LogFile>
+    <Aliases>
+        <Count>0</Count>
+        <SuppressDialog>0</SuppressDialog>
+    </Aliases>
     <DriverProfiling>
         <Enabled>0</Enabled>
         <Mode>3</Mode>
@@ -123,17 +140,4 @@
     <CallStackStripe>
         <ShowTiming>1</ShowTiming>
     </CallStackStripe>
-    <DisassembleMode>
-        <mode>0</mode>
-    </DisassembleMode>
-    <Breakpoints2>
-        <Bp0>_ 0 "EMUL_CODE" "{$PROJ_DIR$\Adafruit\Adafruit_FT6206\Adafruit_FT6206.cpp}.52.3" 0 0 1 "" 0 "" 0</Bp0>
-        <Bp1>_ 0 "EMUL_CODE" "{$PROJ_DIR$\PJDF\pjdfInternalI2C.c}.121.5" 0 0 1 "" 0 "" 0</Bp1>
-        <Bp2>_ 0 "EMUL_CODE" "{$PROJ_DIR$\PJDF\pjdfInternalI2C.c}.90.5" 0 0 1 "" 0 "" 0</Bp2>
-        <Count>3</Count>
-    </Breakpoints2>
-    <Aliases>
-        <Count>0</Count>
-        <SuppressDialog>0</SuppressDialog>
-    </Aliases>
 </settings>

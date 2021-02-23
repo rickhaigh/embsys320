@@ -30,13 +30,22 @@ Adafruit_FT6206 touchCtrl = Adafruit_FT6206(); // The touch controller
 
 #define PENRADIUS 3
 
+// x point to map
+// in_min
+// in_max
+// out_min
+// out_max
+// return mapped point
 long MapTouchToScreen(long x, long in_min, long in_max, long out_min, long out_max)
 {
   return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
+#define train 0
 
+#if train
 #include "train_crossing.h"
+#endif
 
 #define BUFSIZE 256
 
@@ -49,13 +58,10 @@ long MapTouchToScreen(long x, long in_min, long in_max, long out_min, long out_m
 
 static OS_STK   LcdTouchDemoTaskStk[APP_CFG_TASK_START_STK_SIZE];
 static OS_STK   Mp3DemoTaskStk[APP_CFG_TASK_START_STK_SIZE];
-
      
 // Task prototypes
 void LcdTouchDemoTask(void* pdata);
 void Mp3DemoTask(void* pdata);
-
-
 
 // Useful functions
 void PrintToLcdWithBuf(char *buf, int size, char *format, ...);
@@ -120,23 +126,37 @@ void StartupTask(void* pdata)
 }
 
 static void DrawLcdContents()
-{
+{    
     char buf[BUFSIZE];
+    //char *line1 = "EMBSYS 320";
+    //char *line2 = "MP3 Player";
+    // With textsize = 2
+    // Letter box height = 14, width = 10, spacing = 2
+    //int offsetx1 = strlen(line1) * 14;
+    //int offsetx2 = strlen(line2) * 14;
+    //uint8_t posx1 = (240 / 2) - ((strlen(line1) * 14) / 2);
+    //uint8_t posx2 = (240 / 2) - ((strlen(line2) * 14) / 2);
+    
     OS_CPU_SR cpu_sr;
     
     // allow slow lower pri drawing operation to finish without preemption
     OS_ENTER_CRITICAL(); 
-    
+    lcdCtrl.setRotation(1);  // rotate screen 90 deg CW (thick bar on right)
     lcdCtrl.fillScreen(ILI9341_BLACK);
     
     // Print a message on the LCD
     lcdCtrl.setCursor(40, 60);
     lcdCtrl.setTextColor(ILI9341_WHITE);  
     lcdCtrl.setTextSize(2);
-    PrintToLcdWithBuf(buf, BUFSIZE, "EMBSYS 320\n");
+    PrintToLcdWithBuf(buf, BUFSIZE, "EMBSYS 320");
+    
     lcdCtrl.setCursor(40, 80);
     PrintToLcdWithBuf(buf, BUFSIZE, "MP3 Player");
-
+    
+    //lcdCtrl.drawPixel(120,160, ILI9341_GREEN); 
+    //lcdCtrl.drawCircle(120,160,30, ILI9341_GREEN);
+    lcdCtrl.drawRoundRect(10, 200, 50, 30, 5, ILI9341_GREEN);
+    
     OS_EXIT_CRITICAL();
 
 }
@@ -220,8 +240,20 @@ void LcdTouchDemoTask(void* pdata)
         
         // transform touch orientation to screen orientation.
         TS_Point p = TS_Point();
-        p.x = MapTouchToScreen(point.x, 0, ILI9341_TFTWIDTH, ILI9341_TFTWIDTH, 0);
-        p.y = MapTouchToScreen(point.y, 0, ILI9341_TFTHEIGHT, ILI9341_TFTHEIGHT, 0);
+        
+        // Portrait mode rotation 0deg
+        // return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+        // MapTouchToScreen   (long x , long in_min, long in_max     , long out_min    , long out_max)
+        //p.x = MapTouchToScreen(point.x, 0          , ILI9341_TFTWIDTH, ILI9341_TFTWIDTH, 0);
+        //p.y = MapTouchToScreen(point.y, 0, ILI9341_TFTHEIGHT, ILI9341_TFTHEIGHT, 0);
+        
+        // Landscape mode rotated 90deg CCW
+        // MapTouchToScreen   (long x , long in_min      , long in_max, long out_min, long out_max)
+        //p.x = MapTouchToScreen(point.y, 0, ILI9341_TFTHEIGHT, 0, ILI9341_TFTHEIGHT);
+        p.x = 320 - point.y;
+        p.y = 240 - point.x;
+        //p.y = MapTouchToScreen(point.x, ILI9341_TFTWIDTH, 0, ILI9341_TFTWIDTH, 0);
+        PrintWithBuf(buf, BUFSIZE, "input: (%d, %d) :: map:(%d, %d)\n", point.x, point.y, p.x, p.y);
         
         lcdCtrl.fillCircle(p.x, p.y, PENRADIUS, currentcolor);
     }
@@ -259,7 +291,7 @@ void Mp3DemoTask(void* pdata)
 	PrintWithBuf(buf, BUFSIZE, "Starting MP3 device test\n");
     Mp3Init(hMp3);
 
-#if 1   // Demo using mp3 files from SD card 
+#if !train   // Demo using mp3 files from SD card 
     File dir = SD.open("/");
     while (1)
     {
@@ -284,7 +316,7 @@ void Mp3DemoTask(void* pdata)
         dir.seek(0); // reset directory file to read again;
     }
 #endif
-#if 0 // simple mp3 demo using train_crossing mp3
+#if train // simple mp3 demo using train_crossing mp3
     int count = 0;
     while (1)
     {
