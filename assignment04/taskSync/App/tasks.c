@@ -392,7 +392,7 @@ void TaskQRx(void* pdata)
 	BOOLEAN isError = OS_FALSE;
 	QMsg_t *pQMsgReceived;
 	char msgReceived[3] = {"XX"};
-    QMsg_t temp_msg;  // temporary memory location for incoming message, so we have something to point to 
+    //QMsg_t temp_msg;  // temporary memory location for incoming message, so we have something to point to 
 
 	printWithBuf(buf, BUFSIZE, "TaskQRx: starting\n");
 

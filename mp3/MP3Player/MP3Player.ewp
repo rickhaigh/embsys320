@@ -2418,6 +2418,9 @@
             </excluded>
         </file>
         <file>
+            <name>$PROJ_DIR$\BSP\debugger.c</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\BSP\hw_init.c</name>
         </file>
         <file>

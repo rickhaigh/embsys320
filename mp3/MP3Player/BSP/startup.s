@@ -50,9 +50,10 @@
         EXTERN  SystemInit
         PUBLIC  __vector_table
 
-      EXTERN  ContextSwitch
-      EXTERN  OS_CPU_SysTickHandler
-
+        EXTERN  ContextSwitch
+        EXTERN  OS_CPU_SysTickHandler
+        EXTERN  FaultPrint
+        
         DATA
 __vector_table
         DCD     sfe(CSTACK)
@@ -179,7 +180,33 @@ NMI_Handler
         PUBWEAK HardFault_Handler
         SECTION .text:CODE:NOROOT:REORDER(1)
 HardFault_Handler
-        B HardFault_Handler
+	  // Save LR to stack since we will be calling a function below
+      PUSH {LR}
+	  
+      // Copy the PC and LR values from the stack to R0 and R1 respectively.
+            
+      // Save location of PC to find our way back
+      
+      // Copy SP to R0
+      MOV R0, SP
+      
+	  // Add offset to R0 so it points to location where PC was pushed on stack
+      // Make sure to account for anything other than LR that we push to the stack
+      ADD R0, R0, #28
+
+      // Save R0 to stack since we will want to reference it later
+      PUSH {R0}
+      
+      // Load pointer to stack contents to display in FaultPrint function
+      MOV R0, SP
+      ADD R0, R0, #8
+	  
+      // Call FaultPrint() to print out the PC and LR values.
+      // The arguments are passed in R0 and R1.
+      BL FaultPrint
+      
+HardFault_Handler_Loop      
+	  B HardFault_Handler_Loop
 
         PUBWEAK MemManage_Handler
         SECTION .text:CODE:NOROOT:REORDER(1)

@@ -10,11 +10,10 @@
 void SystemClock_Config16(void);
 void SystemClock_Config80(void);
 
-
 // Boot up processor
 void Hw_init(void) {
   
-    SystemClock_Config16();
+    SystemClock_Config80();
     UartInit(115200);
     NVIC_SetPriority(PendSV_IRQn, 0xFF); // Lowest possible priority
 }
@@ -151,10 +150,51 @@ void SystemClock_Config80(void)
   /* This frequency can be calculated through LL RCC macro */
   /* ex: __LL_RCC_CALC_PLLCLK_FREQ(__LL_RCC_CALC_MSI_FREQ(LL_RCC_MSIRANGESEL_RUN, LL_RCC_MSIRANGE_6), 
                                   LL_RCC_PLLM_DIV_1, 40, LL_RCC_PLLR_DIV_2)*/
-  //LL_Init1msTick(80000000);
+  LL_Init1msTick(80000000);
   
   /* Update CMSIS variable (which can be updated also through SystemCoreClockUpdate function) */
   LL_SetSystemCoreClock(80000000);
 }
 
-
+//void SystemClock_Config_Rick80(void)
+//{
+//  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+//  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+//
+//  /** Initializes the RCC Oscillators according to the specified parameters
+//  * in the RCC_OscInitTypeDef structure.
+//  */
+//  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+//  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+//  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+//  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+//  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
+//  RCC_OscInitStruct.PLL.PLLM = 1;
+//  RCC_OscInitStruct.PLL.PLLN = 10;
+//  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV7;
+//  RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV2;
+//  RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;
+//  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+//  {
+//    Error_Handler();
+//  }
+//  /** Initializes the CPU, AHB and APB buses clocks
+//  */
+//  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
+//                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+//  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+//  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+//  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+//  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+//
+//  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_4) != HAL_OK)
+//  {
+//    Error_Handler();
+//  }
+//  /** Configure the main internal regulator output voltage
+//  */
+//  if (HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1) != HAL_OK)
+//  {
+//    Error_Handler();
+//  }
+//}
