@@ -46,6 +46,7 @@ extern const INT8U BspMp3SetClockF[];
 extern const INT8U BspMp3SetVol1010[];
 extern const INT8U BspMp3SetVol6060[];
 extern const INT8U BspMp3ReadVol[];
+extern const INT8U BspMp3ReadStatus[];
 
 // Lengths of the above commands
 extern const INT8U BspMp3SineWaveLen;
@@ -57,6 +58,7 @@ extern const INT8U BspMp3SetClockFLen;
 extern const INT8U BspMp3SetVol1010Len;
 extern const INT8U BspMp3SetVol6060Len;
 extern const INT8U BspMp3ReadVolLen;
+extern const INT8U BspMp3ReadStatusLen;
 
 
 void BspMp3InitVS1053();

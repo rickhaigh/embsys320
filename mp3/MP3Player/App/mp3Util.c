@@ -168,6 +168,43 @@ PjdfErrCode Mp3GetRegister(HANDLE hMp3, INT8U *cmdInDataOut, INT32U bufLen)
     return retval;
 }
 
+void Mp3SoftReset(HANDLE hMp3)
+{    
+    INT32U length;    
+    if (!PJDF_IS_VALID_HANDLE(hMp3)) while (1);
+    
+    // Place MP3 driver in command mode (subsequent writes will be sent to the decoder's command interface)
+    Ioctl(hMp3, PJDF_CTRL_MP3_SELECT_COMMAND, 0, 0);  
+    // soft reset vs1053
+    length = BspMp3SoftResetLen;
+    Write(hMp3, (void*)BspMp3SoftReset, &length);
+}
+
+void Mp3ReadStatus(HANDLE hMp3, uint8_t *Mp3GetStatus )
+{
+    // Place MP3 driver in command mode (subsequent writes will be sent to the decoder's command interface)
+    Ioctl(hMp3, PJDF_CTRL_MP3_SELECT_COMMAND, 0, 0);  
+    // check vs1053 status register
+    memcpy(Mp3GetStatus, BspMp3ReadStatus, BspMp3ReadStatusLen); // copy command from flash to a ram buffer
+    Mp3GetRegister(hMp3, Mp3GetStatus, BspMp3ReadVolLen);    
+}
+
+// Read vs1053 volume register
+// handle Mp3 handle
+// buffer used to store register read results
+// vol current volume setting to compare against, assumes both left and right are using same volume
+void Mp3ReadVol(HANDLE handle, uint8_t buffer[10], uint8_t vol)
+{
+    // Now get the volume setting on the device
+    memcpy(buffer, BspMp3ReadVol, BspMp3ReadVolLen); // copy command from flash to a ram buffer
+    Mp3GetRegister(handle, buffer, BspMp3ReadVolLen);
+    
+    // buffer[2] is left and buffer[3] is right volume
+    if (buffer[2] != vol || buffer[3] != vol)
+    {
+        //while(1); // failed to get data back from the device
+    }
+}
 
 // Mp3Test
 // Runs sine wave sound test on the MP3 decoder.

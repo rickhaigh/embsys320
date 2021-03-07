@@ -13,13 +13,17 @@
 // some command strings to send to the VS1053 MP3 decoder:
 const INT8U BspMp3SineWave[] =  { 0x53, 0xEF, 0x6E, 0x44, 0, 0, 0, 0 };
 const INT8U BspMp3Deact[] =     { 0x45, 0x78, 0x69, 0x74, 0, 0, 0, 0 };
+
+// { sci opcode reg 3=read/2=write, addr sci mode reg, high reg data, low reg data2 }
 const INT8U BspMp3TestMode[] =  { 0x02, 0x00, 0x08, 0x20 };
 const INT8U BspMp3PlayMode[] =  { 0x02, 0x00, 0x08, 0x00 };
 const INT8U BspMp3SoftReset[] = { 0x02, 0x00, 0x08, 0x04 };
 const INT8U BspMp3SetClockF[] = { 0x02, 0x03, 0x98, 0x00 };
-const INT8U BspMp3SetVol1010[] = { 0x02, 0x0B, 0x10, 0x10 };
+//const INT8U BspMp3SetVol1010[] = { 0x02, 0x0B, 0x10, 0x10 };
+const INT8U BspMp3SetVol1010[] = { 0x02, 0x0B, 0x40, 0x40 };
 const INT8U BspMp3SetVol6060[] = { 0x02, 0x0B, 0x60, 0x60 };
 const INT8U BspMp3ReadVol[] = { 0x3, 0x0B, 0x00, 0x00 };
+const INT8U BspMp3ReadStatus[] = { 0x3, 0x01, 0x00, 0x00 };
 
 // Lengths of the above commands
 const INT8U BspMp3SineWaveLen = sizeof(BspMp3SineWave);
@@ -31,8 +35,7 @@ const INT8U BspMp3SetClockFLen = sizeof(BspMp3SetClockF);
 const INT8U BspMp3SetVol1010Len = sizeof(BspMp3SetVol1010);
 const INT8U BspMp3SetVol6060Len = sizeof(BspMp3SetVol6060);
 const INT8U BspMp3ReadVolLen = sizeof(BspMp3ReadVol);
-
-
+const INT8U BspMp3ReadStatusLen = sizeof(BspMp3ReadStatus);
 
 
 // Initializes GPIO pins for the VS1053 MP3 device.
