@@ -12,11 +12,68 @@
 #include "SD.h"
 
 void delay(uint32_t time);
-
-
 static File dataFile;
-
 extern BOOLEAN nextSong;
+
+// volume control (global variables)
+bool setVolume = false;
+unsigned char leftChannel = 0x10;
+unsigned char rightChannel = 0x10;
+
+// Mp3GetRegister
+// Gets a register value from the MP3 decoder.
+// hMp3: an open handle to the MP3 decoder
+// cmdInDataOut: on entry this buffer must contain the 
+//     command to get the desired register from the decoder. On exit
+//     this buffer will be OVERWRITTEN by the data output by the decoder in 
+//     response to the command. Note: the buffer must not reside in readonly memory.
+// bufLen: the number of bytes in cmdInDataOut.
+// Returns: PJDF_ERR_NONE if no error otherwise an error code.
+PjdfErrCode Mp3GetRegister(HANDLE hMp3, INT8U *cmdInDataOut, INT32U bufLen)
+{
+    PjdfErrCode retval;
+    if (!PJDF_IS_VALID_HANDLE(hMp3)) while (1);
+    
+    // Place MP3 driver in command mode (subsequent writes will be sent to the decoder's command interface)
+    Ioctl(hMp3, PJDF_CTRL_MP3_SELECT_COMMAND, 0, 0);
+    
+    retval = Read(hMp3, cmdInDataOut, &bufLen);
+    return retval;
+}
+
+// Mp3WriteRegister
+PjdfErrCode Mp3WriteRegister(HANDLE hMp3, INT8U *cmdInDataOut, INT32U bufLen){
+    PjdfErrCode retval;
+    if (!PJDF_IS_VALID_HANDLE(hMp3)) while (1);
+
+    // Place MP3 driver in command mode (subsequent writes will be sent to the decoder's command interface)
+    Ioctl(hMp3, PJDF_CTRL_MP3_SELECT_COMMAND, 0, 0);
+
+    retval = Write(hMp3, cmdInDataOut, &bufLen);
+
+    // Set MP3 driver to data mode (subsequent writes will be sent to decoder's data interface)
+    Ioctl(hMp3, PJDF_CTRL_MP3_SELECT_DATA, 0, 0);
+
+    return retval;
+}
+
+// Mp3SetVolumeInternal
+// internal function to set volume
+static void Mp3SetVolumeInternal(HANDLE hMp3, unsigned char leftchannel, unsigned char rightchannel)
+{
+    char printBuf[PRINTBUFMAX];
+    INT8U BspMp3SetVol[] = {0x02, 0x0B, leftchannel, rightchannel};
+    Mp3WriteRegister(hMp3, BspMp3SetVol, BspMp3SetVol1010Len);
+    PrintWithBuf(printBuf, PRINTBUFMAX, "Mp3Util: Setting volume %d\n", leftChannel);
+}
+
+// Set Volume
+void Mp3SetVolume(uint8_t leftchannel, uint8_t rightchannel)
+{
+    setVolume = true;
+    leftChannel = (unsigned char) leftchannel;
+    rightChannel = (unsigned char) rightchannel;
+}
 
 static void Mp3StreamInit(HANDLE hMp3)
 {
@@ -31,7 +88,8 @@ static void Mp3StreamInit(HANDLE hMp3)
  
     // Set volume
     length = BspMp3SetVol1010Len;
-    Write(hMp3, (void*)BspMp3SetVol1010, &length);
+    INT8U BspMp3SetVol[] = {0x02, 0x0B, leftChannel, rightChannel};
+    Write(hMp3, (void*)BspMp3SetVol, &length);
 
     // To allow streaming data, set the decoder mode to Play Mode
     length = BspMp3PlayModeLen;
@@ -45,9 +103,11 @@ static void Mp3StreamInit(HANDLE hMp3)
 // Streams the given file from the SD card to the given MP3 decoder.
 // hMP3: an open handle to the MP3 decoder
 // pFilename: The file on the SD card to stream. 
-void Mp3StreamSDFile(HANDLE hMp3, char *pFilename)
+void Mp3StreamSDFile(HANDLE hMp3, char *pFilename, uint8_t vol)
 {
     INT32U length;
+//    uint16_t Mp3SetVol[] = { 0x02, 0x0B, 0x00, 0x00 };
+//    uint32_t Mp3SetVolLen = sizeof(Mp3SetVol);
 
     Mp3StreamInit(hMp3);
     
@@ -66,21 +126,28 @@ void Mp3StreamSDFile(HANDLE hMp3, char *pFilename)
     while (dataFile.available())
     {
         iBufPos = 0;
+        // set volume control
+        if(setVolume)
+        {
+            setVolume = false;
+            Mp3SetVolumeInternal(hMp3, leftChannel, rightChannel);
+        }
+        
         while (dataFile.available() && iBufPos < MP3_DECODER_BUF_SIZE)
         {
             mp3Buf[iBufPos] = dataFile.read();
             //delay(30);
             iBufPos++;
         }
-       
+
         Write(hMp3, mp3Buf, &iBufPos);
-        //OSTimeDly(1);
+        
         if (nextSong)
         {
             break;
         }
     }
-    
+        
     dataFile.close();
     
     Ioctl(hMp3, PJDF_CTRL_MP3_SELECT_COMMAND, 0, 0);
@@ -147,27 +214,6 @@ void Mp3Init(HANDLE hMp3)
     Write(hMp3, (void*)BspMp3SoftReset, &length);
 }
 
-// Mp3GetRegister
-// Gets a register value from the MP3 decoder.
-// hMp3: an open handle to the MP3 decoder
-// cmdInDataOut: on entry this buffer must contain the 
-//     command to get the desired register from the decoder. On exit
-//     this buffer will be OVERWRITTEN by the data output by the decoder in 
-//     response to the command. Note: the buffer must not reside in readonly memory.
-// bufLen: the number of bytes in cmdInDataOut.
-// Returns: PJDF_ERR_NONE if no error otherwise an error code.
-PjdfErrCode Mp3GetRegister(HANDLE hMp3, INT8U *cmdInDataOut, INT32U bufLen)
-{
-    PjdfErrCode retval;
-    if (!PJDF_IS_VALID_HANDLE(hMp3)) while (1);
-    
-    // Place MP3 driver in command mode (subsequent writes will be sent to the decoder's command interface)
-    Ioctl(hMp3, PJDF_CTRL_MP3_SELECT_COMMAND, 0, 0);
-    
-    retval = Read(hMp3, cmdInDataOut, &bufLen);
-    return retval;
-}
-
 void Mp3SoftReset(HANDLE hMp3)
 {    
     INT32U length;    
@@ -193,7 +239,7 @@ void Mp3ReadStatus(HANDLE hMp3, uint8_t *Mp3GetStatus )
 // handle Mp3 handle
 // buffer used to store register read results
 // vol current volume setting to compare against, assumes both left and right are using same volume
-void Mp3ReadVol(HANDLE handle, uint8_t buffer[10], uint8_t vol)
+void Mp3ReadVol(HANDLE handle, uint8_t *buffer, uint8_t vol)
 {
     // Now get the volume setting on the device
     memcpy(buffer, BspMp3ReadVol, BspMp3ReadVolLen); // copy command from flash to a ram buffer
