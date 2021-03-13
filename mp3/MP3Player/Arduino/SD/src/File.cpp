@@ -149,7 +149,8 @@ void File::close() {
   if (_file) {
     _file->close();
     //free(_file);
-    
+    _file = 0;
+            
     uCOSerr = OSMemPut(sdFileHeap, _file);
     if (uCOSerr != OS_ERR_NONE) while(1);
 

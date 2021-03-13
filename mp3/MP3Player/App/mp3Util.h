@@ -46,7 +46,7 @@
 #define SM_CLK_RANGE      (1<<15) /* VS1063, VS1053, VS1033 */
 
 // for MP3 Control
-typedef enum Mp3_Ctrl{
+typedef enum mp3_ctrl{
     Mp3Vol_Up = 1,
     Mp3Vol_Down,
     Mp3_Skip,
@@ -61,9 +61,9 @@ PjdfErrCode Mp3GetRegister(HANDLE hMp3, INT8U *cmdInDataOut, INT32U bufLen);
 void Mp3Init(HANDLE hMp3);
 void Mp3Test(HANDLE hMp3);
 void Mp3Stream(HANDLE hMp3, INT8U *pBuf, INT32U bufLen);
-void Mp3StreamSDFile(HANDLE hMp3, char *pFilename, uint8_t vol);
+void Mp3StreamSDFile(HANDLE hMp3, char *pFilename);
 void Mp3ReadStatus(HANDLE hMp3, uint8_t *buffer);
-void Mp3ReadVol(HANDLE hMp3, uint8_t *buffer, uint8_t vol);
+void Mp3ReadVol(HANDLE hMp3, uint8_t *buffer);
 void Mp3SoftReset(HANDLE hMp3);
 
 void Mp3SetVolume(uint8_t leftchannel, uint8_t rightchannel);

@@ -406,7 +406,7 @@ void LcdTouchDemoTask(void* pdata)
             }
             
             // Mailbox mbox_touch: send msg to MP3 using mailbox mbox_touch
-            OSMboxPost(mbox_touch, (void *)&cmd);
+            //OSMboxPost(mbox_touch, (void *)&cmd);
                         
             // Set volume by sending message through queue
             //length = BspMp3SetVol1010Len;
@@ -448,8 +448,7 @@ void LcdTouchDemoTask(void* pdata)
         }    
         
         // PrintWithBuf(buf, BUFSIZE, "input: (%d, %d) :: map:(%d, %d)\n", point.x, point.y, p.x, p.y);
-        
-        
+           
     }
 }
 /************************************************************************************
@@ -465,6 +464,7 @@ void Mp3DemoTask(void* pdata)
     INT8U err;
     uint8_t msg = Mp3InvalidCmd;
     uint8_t *msgReceived = &msg;
+    Mp3_Ctrl Mp3Playmode = Mp3_Play;
     
     // Mp3 Initialization
     char buf[BUFSIZE];
@@ -493,7 +493,7 @@ void Mp3DemoTask(void* pdata)
     ///////////////////////////////////////////////////////////////////////////
     // Mp3 Playback
     uint8_t read_buff[10];
-    Mp3ReadVol(hMp3, read_buff, mp3vol);
+    Mp3ReadVol(hMp3, read_buff);
     mp3vol = read_buff[2]; // both ears have the same volume level
 #if !train   
     // Demo using mp3 files from SD card 
@@ -502,20 +502,12 @@ void Mp3DemoTask(void* pdata)
     //uint16_t vol = 50;
     
     uint8_t Mp3GetStatus[10];
-    msg = 0;
+    msg = 0;    
     
     while (1)
     {
-        Mp3ReadStatus(hMp3, Mp3GetStatus);
-        PrintWithBuf(buf, BUFSIZE, "Mp3ReadStatus = %X %X %X %X\n", Mp3GetStatus[0], Mp3GetStatus[1], Mp3GetStatus[2], Mp3GetStatus[3]); 
-                
-        char filename[13];
-        int count = 0;
         while (1)
         {
-            /////////////////////////////////
-            // Search SD card for next MP3
-            /////////////////////////////////
             File entry = dir.openNextFile();
             if (!entry)
             {
@@ -526,142 +518,70 @@ void Mp3DemoTask(void* pdata)
                 entry.close();
                 continue;
             }
+                            
+            Mp3StreamSDFile(hMp3, entry.name()); 
             
-            PrintWithBuf(buf, BUFSIZE, "Now Playing: %s\n", entry.name());
-            
-            count++;
-            // Only 8.3 file names supported by SD library            
-            memcpy(filename, entry.name(), 13);
-            // song title sending message through mbox
-            // Mailbox mbox_mp3: send msg to touch using mailbox mbox_mp3
-            OSMboxPost(mbox_mp3, (void *)&filename);
-            PrintWithBuf(buf, BUFSIZE, "Mp3:Touch Message sent filename: %d-%s\n", count, filename);
-            
-            OSTimeDly(50);
-            
-            // control functions need to have a way to get done in this function or else they will not get done
-            Mp3StreamSDFile(hMp3, entry.name(), 10); 
-                        
             entry.close();
-            
-            ///////////////////////////////////////////////////////////////////
-            // Listen for commands from touch task
-            ///////////////////////////////////////////////////////////////////
-            
-            // Receive a message in msgReceived from mbox_touch
-            // Make sure to use timeout or it will wait here for the message to arrive
-            msgReceived = (uint8_t*)OSMboxPend(mbox_touch, 50, &err);
-            PrintWithBuf(buf, BUFSIZE, "Touch:Mp3 Message received: %d\n", *msgReceived);
-            
-//            uint8_t read_buff[10];
-//            if (*msgReceived == Mp3Vol_Up){
-//                // Now get the volume setting on the device            
-//                Mp3ReadVol(hMp3, read_buff, vol);
-//                // make sure we are not trying to change volume when it is out of range 0 - 100
-//                if (vol > 100) {
-//                    vol = 100;
-//                }
-//                // Max volume is 0, min volume is 100
-//                if (vol > 15) {
-//                    vol -= 15;
-//                    Mp3SetVolume(vol, vol);
-//                } else {
-//                    vol = 0;
-//                    Mp3SetVolume(vol, vol);
-//                }
-//                
-//                PrintWithBuf(buf, BUFSIZE, "Mp3Vol_Up Vol = %d\n", vol);             
-//            } else if (*msgReceived == Mp3Vol_Down){
-//                if (vol < 100) { // no reason to use volumes between 100 and 254 through headphones you cannot hear it
-//                    vol += 15;
-//                    Mp3SetVolume(vol, vol);
-//                } else {
-//                    vol = 100;
-//                    Mp3SetVolume(vol, vol);
-//                }
-//                
-//                PrintWithBuf(buf, BUFSIZE, "Mp3Vol_Down Vol = %d\n", vol);
-//            } else if (*msgReceived == Mp3_Stop){
-//                // Stop playing the Mp3
-//                //uint32_t length = BspMp3DeactLen;
-//                //Write(hMp3, (void*)BspMp3Deact, &length);
-//                Ioctl(hMp3, PJDF_CTRL_MP3_SELECT_COMMAND, 0, 0);
-//                // ??????????
-//                Ioctl(hMp3, PJDF_CTRL_MP3_SELECT_DATA, 0, 0);
-//                
-//                PrintWithBuf(buf, BUFSIZE, "Mp3_Stop received: %d\n", *msgReceived);
-//            } else if (*msgReceived >= Mp3InvalidCmd){
-//                //PrintWithBuf(buf, BUFSIZE, "MP3 Queue: Invalid message received msg %d\n", *msgReceived);
-//            }
         }
         dir.seek(0); // reset directory file to read again;
     }
+    
+//    while (1)
+//    {
+//        Mp3ReadStatus(hMp3, Mp3GetStatus);
+//        PrintWithBuf(buf, BUFSIZE, "Mp3ReadStatus = %X %X %X %X\n", Mp3GetStatus[0], Mp3GetStatus[1], Mp3GetStatus[2], Mp3GetStatus[3]); 
+//                
+//        char filename[14];  // 13 chars each
+//        char fileslist[50][14];
+//        uint8_t count = 0;
+//        uint8_t i = 0;
+//        while (1)
+//        {
+//            /////////////////////////////////
+//            // Search SD card for next MP3
+//            /////////////////////////////////
+//            File entry = dir.openNextFile();
+//            if (!entry)
+//            {
+//                break;
+//            }
+//            if (entry.isDirectory()){  // skip directories
+//                entry.close();
+//                continue;
+//            }
+//            
+//            // Only 8.3 file names supported by SD library            
+//            memcpy(filename, entry.name(), 13);
+//            memcpy(fileslist[count], filename, 13);
+//
+//            count++;
+//            Mp3StreamSDFile(hMp3, entry.name());             
+//            entry.close();
+//        }
+//        Mp3Playmode = Mp3_Play;
+//        if (Mp3Playmode == Mp3_Play) {
+//            while (i < count) {
+//                memcpy(filename, fileslist[i], 13);
+//                // song title sending message through mbox
+//                // Mailbox mbox_mp3: send msg to touch using mailbox mbox_mp3
+//                //OSMboxPost(mbox_mp3, (void *)&filename);
+//                //PrintWithBuf(buf, BUFSIZE, "Mp3:Touch Message sent filename: %d-%s\n", i, filename);
+//                //Mp3StreamSDFile(hMp3, filename); 
+//                //Mp3StreamSDFile(hMp3, "INTRO.MP3"); 
+//                i++;
+//            }
+//        }
+//        //dir.seek(0); // reset directory file to read again;
+//    }
 #else
 //    // simple mp3 demo using train_crossing mp3
-//    //int count = 0;
-//    uint16_t vol = 254;
-//    // { sci write reg, sci mode reg, left vol, right vol }
-//    uint16_t Mp3SetVol[] = { 0x02, 0x0B, 0x10, 0x10 };
-//    uint32_t Mp3SetVolLen = sizeof(Mp3SetVol);
 //    
 //    uint8_t Mp3GetStatus[10];
 //    
 //    while (1)
-//    {
-//        
+//    {        
 //        Mp3ReadStatus(hMp3, Mp3GetStatus);
 //        PrintWithBuf(buf, BUFSIZE, "Mp3ReadStatus = %X %X %X %X\n", Mp3GetStatus[0], Mp3GetStatus[1], Mp3GetStatus[2], Mp3GetStatus[3]); 
-//        // Receive a message in msgReceived from mbox_touch
-//        // Make sure to use timeout or it will wait here for the message to arrive
-//        msgReceived = (uint8_t*)OSMboxPend(mbox_touch, 50, &err);
-//        uint8_t read_buff[10];
-//        if (*msgReceived == Mp3Vol_Up){
-//            // Now get the volume setting on the device            
-//            Mp3ReadVol(hMp3, read_buff, vol);
-//            // make sure we are not trying to change volume when it is out of range 0 - 100
-//            if (vol > 100) {
-//                vol = 100;
-//            }
-//            // Max volume is 0, min volume is 100
-//            if (vol > 15) {
-//                vol -= 15;
-//                // use same volume in both sides
-//                Mp3SetVol[2] = vol;
-//                Mp3SetVol[3] = vol;
-//                // Place MP3 driver in command mode (subsequent writes will be sent to the decoder's command interface)
-//                Ioctl(hMp3, PJDF_CTRL_MP3_SELECT_COMMAND, 0, 0);                     
-//                // Set volume                       
-//                Write(hMp3, (void*)Mp3SetVol, &Mp3SetVolLen);
-//                Mp3ReadVol(hMp3, read_buff, vol);
-//            } else {
-//                vol = 0;
-//            }
-//            
-//            PrintWithBuf(buf, BUFSIZE, "Mp3Vol_Up Vol = %d\n", vol);             
-//        } else if (*msgReceived == Mp3Vol_Down){
-//            if (vol < 100) { // no reason to use volumes between 100 and 254 through headphones you cannot hear it
-//                vol += 15;
-//                // use same volume in both sides
-//                Mp3SetVol[2] = vol;
-//                Mp3SetVol[3] = vol;
-//                // Place MP3 driver in command mode (subsequent writes will be sent to the decoder's command interface)
-//                Ioctl(hMp3, PJDF_CTRL_MP3_SELECT_COMMAND, 0, 0);                     
-//                // Set volume                       
-//                Write(hMp3, (void*)Mp3SetVol, &Mp3SetVolLen);
-//                Mp3ReadVol(hMp3, read_buff, vol);
-//            }
-//            
-//            PrintWithBuf(buf, BUFSIZE, "Mp3Vol_Down Vol = %d\n", vol);
-//        } else if (*msgReceived == Mp3_Stop){
-//            // Stop playing the Mp3
-//            uint32_t length = BspMp3DeactLen;
-//            //Write(hMp3, (void*)BspMp3Deact, &length);
-//            Mp3SoftReset(hMp3);
-//            
-//            PrintWithBuf(buf, BUFSIZE, "Mp3_Stop received: %d\n", *msgReceived);
-//        } else if (*msgReceived >= Mp3InvalidCmd){
-//            PrintWithBuf(buf, BUFSIZE, "MP3 Queue: Invalid message received msg %d\n", *msgReceived);
-//        }
 //        
 //        //PrintWithBuf(buf, BUFSIZE, "Begin streaming sound file  count=%d\n", ++count);
 //        Mp3Stream(hMp3, (INT8U*)Train_Crossing, sizeof(Train_Crossing)); 
@@ -692,20 +612,3 @@ void PrintToLcdWithBuf(char *buf, int size, char *format, ...)
     PrintToDeviceWithBuf(PrintCharToLcd, buf, size, format, args);
     va_end(args);
 }
-
-//// Read vs1053 volume register
-//// handle Mp3 handle
-//// buffer used to store register read results
-//// vol current volume setting to compare against, assumes both left and right are using same volume
-//void mp3ReadVol(HANDLE handle, uint8_t buffer[10], uint8_t vol){
-//    // Now get the volume setting on the device
-//    memcpy(buffer, BspMp3ReadVol, BspMp3ReadVolLen); // copy command from flash to a ram buffer
-//    Mp3GetRegister(handle, buffer, BspMp3ReadVolLen);
-//    
-//    // buffer[2] is left and buffer[3] is right volume
-//    if (buffer[2] != vol || buffer[3] != vol)
-//    {
-//        //while(1); // failed to get data back from the device
-//    }
-//}
-

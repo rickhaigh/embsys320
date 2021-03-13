@@ -103,11 +103,9 @@ static void Mp3StreamInit(HANDLE hMp3)
 // Streams the given file from the SD card to the given MP3 decoder.
 // hMP3: an open handle to the MP3 decoder
 // pFilename: The file on the SD card to stream. 
-void Mp3StreamSDFile(HANDLE hMp3, char *pFilename, uint8_t vol)
+void Mp3StreamSDFile(HANDLE hMp3, char *pFilename)
 {
     INT32U length;
-//    uint16_t Mp3SetVol[] = { 0x02, 0x0B, 0x00, 0x00 };
-//    uint32_t Mp3SetVolLen = sizeof(Mp3SetVol);
 
     Mp3StreamInit(hMp3);
     
@@ -130,6 +128,7 @@ void Mp3StreamSDFile(HANDLE hMp3, char *pFilename, uint8_t vol)
         if(setVolume)
         {
             setVolume = false;
+            // set volume with global variables
             Mp3SetVolumeInternal(hMp3, leftChannel, rightChannel);
         }
         
@@ -239,17 +238,17 @@ void Mp3ReadStatus(HANDLE hMp3, uint8_t *Mp3GetStatus )
 // handle Mp3 handle
 // buffer used to store register read results
 // vol current volume setting to compare against, assumes both left and right are using same volume
-void Mp3ReadVol(HANDLE handle, uint8_t *buffer, uint8_t vol)
+void Mp3ReadVol(HANDLE handle, uint8_t *buffer)
 {
     // Now get the volume setting on the device
     memcpy(buffer, BspMp3ReadVol, BspMp3ReadVolLen); // copy command from flash to a ram buffer
     Mp3GetRegister(handle, buffer, BspMp3ReadVolLen);
     
     // buffer[2] is left and buffer[3] is right volume
-    if (buffer[2] != vol || buffer[3] != vol)
-    {
-        //while(1); // failed to get data back from the device
-    }
+//    if (buffer[2] != vol || buffer[3] != vol)
+//    {
+//        //while(1); // failed to get data back from the device
+//    }
 }
 
 // Mp3Test
