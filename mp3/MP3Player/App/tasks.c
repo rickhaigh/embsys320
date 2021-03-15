@@ -27,10 +27,11 @@ Module Description:
 #define train 0
 
 
-// Create button to clear screen
-Adafruit_GFX_Button button1 = Adafruit_GFX_Button();
+// Create button to skip Mp3 song
+Adafruit_GFX_Button skip_btn = Adafruit_GFX_Button();
 // Create button to stop Mp3
 Adafruit_GFX_Button stop_btn = Adafruit_GFX_Button();
+Adafruit_GFX_Button play_pause_btn = Adafruit_GFX_Button();
 // Create button to reduce Mp3 volume
 Adafruit_GFX_Button voldn_btn = Adafruit_GFX_Button();
 // Create button to increase Mp3 volume
@@ -167,58 +168,132 @@ void StartupTask(void* pdata)
 	OSTaskDel(OS_PRIO_SELF);
 }
 
-void drawButtons()
+static void drawButtons()
 {
-    button1.drawButton(0);
-    stop_btn.drawButton(0);
+    InitButtons();  // do this in case button text has changed
+    skip_btn.drawButton(0);
+    play_pause_btn.drawButton(0);
     voldn_btn.drawButton(0);
     volup_btn.drawButton(0);
+    
+    // Draw pretty button images
+    Mp3_Ctrl mp3_control_state = Mp3GetControl();
+    if(mp3_control_state == Mp3_Pause) {
+        // Play button triangle coords
+        // x0 and y0 coords are using button center coords as basis
+        int16_t x0 = 200 - 23;  // started at 23
+        int16_t x1 = x0;
+        int16_t x2 = x0 + 46;
+        int16_t y0 = 210 + 23;
+        int16_t y1 = y0 - 46;
+        int16_t y2 = y0 - 23;
+        
+        // Draw play button triangle after drawButtons so it will be on top
+        lcdCtrl.fillTriangle (x0, y0,
+                              x1, y1,
+                              x2, y2, ILI9341_WHITE);
+    } else if (mp3_control_state == Mp3_Play) {
+        int16_t x1 = 200 - 15;
+        int16_t y1 = 210 - 23;
+        int16_t w = 10;
+        int16_t h = 46;
+        int16_t r = 5;    
+        
+        // Draw pause button 
+        lcdCtrl.fillRoundRect(x1, y1, w, h, r, ILI9341_WHITE);
+        lcdCtrl.fillRoundRect(x1 + 20, y1, w, h, r, ILI9341_WHITE);
+    }
+    
+    // Draw skip button
+    // x0 and y0 coords are using button center coords as basis
+    int16_t x0 = 280 - 24;  
+    int16_t x1 = x0;
+    int16_t x2 = x0 + 24;
+    int16_t y0 = 210 + 12;
+    int16_t y1 = y0 - 24;
+    int16_t y2 = y0 - 12;
+    
+    // Draw skip button triangles after drawButtons so it will be on top
+    lcdCtrl.fillTriangle (x0, y0, 
+                          x1, y1, 
+                          x2, y2, ILI9341_WHITE);
+    lcdCtrl.fillTriangle (x0 + 24, y0, 
+                          x1 + 24, y1, 
+                          x2 + 24, y2, ILI9341_WHITE);
+    
+    // Draw Volume Up Button
+    x1 = 120;
+    y1 = 210;
+    int16_t w1 = 10;
+    int16_t h1 = 46;
+    int16_t w2 = 46;
+    int16_t h2 = 10;
+    int16_t r = 5;    
+    
+    // Draw + button 
+    lcdCtrl.fillRoundRect(x1-5, y1-23, w1, h1, r, ILI9341_WHITE);
+    lcdCtrl.fillRoundRect(x1-23, y1-5, w2, h2, r, ILI9341_WHITE);
+    // Draw - button
+    lcdCtrl.fillRoundRect(x1-(23+80), y1-5, w2, h2, r, ILI9341_WHITE);
+    
 }
 
 static void InitButtons() 
 {
-    button1.initButton(
+    char play_pause_text[6] = "Play";
+    Mp3_Ctrl mp3_control_state = Mp3GetControl();
+    
+    // Play Pause text will be reversed so that Play shows when paused and Pause shows when playing
+    if(mp3_control_state == Mp3_Play){
+        strcpy(play_pause_text, "Pause");
+    } else if (mp3_control_state == Mp3_Pause) {
+        strcpy(play_pause_text, "Play");
+    }
+    
+    // All of these buttons are the same color as the background, so they are invisible
+    skip_btn.initButton(
                        &lcdCtrl,
                        ILI9341_TFTHEIGHT-40, ILI9341_TFTWIDTH-30, // x, y center of button
                        //320-40, 240-30,
                        75, 55,          // Width, Height
-                       ILI9341_YELLOW,  // Outline
+                       ILI9341_BLACK,  // Outline
                        ILI9341_BLACK,   // Fill
-                       ILI9341_YELLOW,  // text color
-                       "Clear",         // button label
-                       1);              // text size
-    
-    // Create button to stop Mp3
-    stop_btn.initButton(
-                       &lcdCtrl,
-                       ILI9341_TFTHEIGHT-120, ILI9341_TFTWIDTH-30, // x, y center of button
-                       75, 55,          // Width, Height
-                       ILI9341_YELLOW,  // Outline
-                       ILI9341_BLACK,   // Fill
-                       ILI9341_YELLOW,  // text color
-                       "Stop",         // button label
+                       ILI9341_BLACK,  // text color
+                       "Skip",          // button label
                        2);              // text size
     
-    // Create button to reduce Mp3 volume
-    voldn_btn.initButton(
+    // Create button to Play/Pause Mp3
+    play_pause_btn.initButton(
                        &lcdCtrl,
-                       ILI9341_TFTHEIGHT-200, ILI9341_TFTWIDTH-30, // x, y center of button
+                       ILI9341_TFTHEIGHT-120, ILI9341_TFTWIDTH-30, // x, y center of button
+                       //320-120, 240-30
                        75, 55,          // Width, Height
-                       ILI9341_YELLOW,  // Outline
+                       ILI9341_BLACK,  // Outline
                        ILI9341_BLACK,   // Fill
-                       ILI9341_YELLOW,  // text color
-                       "Vol -",         // button label
+                       ILI9341_BLACK,  // text color
+                       play_pause_text, // button label
                        2);              // text size
     
     // Create button to increase Mp3 volume
     volup_btn.initButton(
                        &lcdCtrl,
+                       ILI9341_TFTHEIGHT-200, ILI9341_TFTWIDTH-30, // x, y center of button
+                       75, 55,          // Width, Height
+                       ILI9341_BLACK,   // Outline
+                       ILI9341_BLACK,   // Fill
+                       ILI9341_BLACK,   // text color
+                       "Vol +",         // button label
+                       2);              // text size
+    
+    // Create button to reduce Mp3 volume
+    voldn_btn.initButton(
+                       &lcdCtrl,
                        ILI9341_TFTHEIGHT-280, ILI9341_TFTWIDTH-30, // x, y center of button
                        75, 55,          // Width, Height
-                       ILI9341_YELLOW,  // Outline
+                       ILI9341_BLACK,   // Outline
                        ILI9341_BLACK,   // Fill
-                       ILI9341_YELLOW,  // text color
-                       "Vol +",         // button label
+                       ILI9341_BLACK,   // text color
+                       "Vol -",         // button label
                        2);              // text size
 
 }
@@ -255,8 +330,8 @@ static void DrawLcdContents(char *buffer)
         PrintToLcdWithBuf(buf, BUFSIZE, buffer);
     }
     
-    drawButtons();
-
+    drawButtons(); // This draws the touchable button shapes    
+    
     OS_EXIT_CRITICAL();
 
 }
@@ -271,7 +346,6 @@ void ControlTask(void* pdata)
 
 }
 
-
 /************************************************************************************
 
    Runs LCD/Touch demo code
@@ -282,8 +356,9 @@ void LcdTouchDemoTask(void* pdata)
     PjdfErrCode pjdfErr;
     INT32U length;
     INT8U err;
-    char *temp = "12345678.123";
+    char temp[13];
     char *currPlaying = (char*)temp;
+    char *mp3MsgRx = (char*)temp;
     
     char buf[BUFSIZE];
     PrintWithBuf(buf, BUFSIZE, "LcdTouchDemoTask: starting\n");
@@ -334,8 +409,9 @@ void LcdTouchDemoTask(void* pdata)
         PrintWithBuf(buf, BUFSIZE, "Couldn't start FT6206 touchscreen controller\n");
         while (1);
     }
-        
-    int currentcolor = ILI9341_RED;
+      
+    // Color of touch point when enabled
+    //int currentcolor = ILI9341_RED;
     
     // Touch detection loop
     while (1) { 
@@ -343,9 +419,10 @@ void LcdTouchDemoTask(void* pdata)
         
         // Receive a message in msgReceived from mbox_touch
         // Make sure to use timeout or it will wait here for the message to arrive
-        currPlaying = (char*)OSMboxPend(mbox_mp3, 50, &err);
+        mp3MsgRx = (char*)OSMboxPend(mbox_mp3, 50, &err);
         // Make sure there was a message received and that we did not timeout
         if (err == OS_ERR_NONE) {
+            strcpy(currPlaying, mp3MsgRx);
             DrawLcdContents(currPlaying);
             PrintWithBuf(buf, BUFSIZE, "Mp3 Message Rx: %s\n", currPlaying);
         }
@@ -376,7 +453,7 @@ void LcdTouchDemoTask(void* pdata)
         p.y = MapTouchToScreen(point.x, 0, ILI9341_TFTWIDTH, 0, ILI9341_TFTWIDTH);
         
         // Draw touched points on the screen
-        lcdCtrl.fillCircle(p.x, p.y, PENRADIUS, currentcolor);
+        // lcdCtrl.fillCircle(p.x, p.y, PENRADIUS, currentcolor);
         
         touched = touchCtrl.touched();
         
@@ -385,9 +462,10 @@ void LcdTouchDemoTask(void* pdata)
 //        } else {
 //            DrawLcdContents(currPlaying);
 //        }
-        if (button1.contains(p.x, p.y)) {
+        if (skip_btn.contains(p.x, p.y)) {
             // clear screen and start over
-            DrawLcdContents(currPlaying);
+            Mp3SetControl(Mp3_Skip);
+            OSTimeDly(200); // need enough time to debounce   
         }
         
         if (volup_btn.contains(p.x, p.y)) {
@@ -436,15 +514,23 @@ void LcdTouchDemoTask(void* pdata)
             OSTimeDly(90);    
         }
                 
-        if (stop_btn.contains(p.x, p.y)) {
-            uint8_t cmd = Mp3_Stop;
-            // Set volume by sending message through queue
-            // Mailbox mbox_touch: send msg to MP3 using mailbox mbox_touch
-            OSMboxPost(mbox_touch, (void *)&cmd);
+        if (play_pause_btn.contains(p.x, p.y)) {
+            Mp3_Ctrl mp3_current_state = Mp3GetControl();
             
-            PrintWithBuf(buf, BUFSIZE, "Mp3 Message sent Mp3_Stop: %d\n", cmd);
-                        
-            OSTimeDly(90);    
+            if (mp3_current_state == Mp3_Play) {
+                Mp3SetControl(Mp3_Pause);
+                
+            } else { 
+                Mp3SetControl(Mp3_Play);
+            }
+            // refresh play pause button on the screen and keep current song on the screen
+            DrawLcdContents(currPlaying);
+            // Set play pause state by sending message through queue
+            // Mailbox mbox_touch: send msg to MP3 using mailbox mbox_touch
+            //OSMboxPost(mbox_touch, (void *)&cmd);
+            //PrintWithBuf(buf, BUFSIZE, "Mp3 Message sent Mp3_Stop: %d\n", cmd);
+            
+            OSTimeDly(200); // need enough time to debounce   
         }    
         
         // PrintWithBuf(buf, BUFSIZE, "input: (%d, %d) :: map:(%d, %d)\n", point.x, point.y, p.x, p.y);
@@ -501,13 +587,13 @@ void Mp3DemoTask(void* pdata)
     
     //uint16_t vol = 50;
     
-    uint8_t Mp3GetStatus[10];
+    // uint8_t Mp3GetStatus[10];
     msg = 0;
     
     while (1)
     {
-        Mp3ReadStatus(hMp3, Mp3GetStatus);
-        PrintWithBuf(buf, BUFSIZE, "Mp3ReadStatus = %X %X %X %X\n", Mp3GetStatus[0], Mp3GetStatus[1], Mp3GetStatus[2], Mp3GetStatus[3]); 
+        //Mp3ReadStatus(hMp3, Mp3GetStatus);
+        //PrintWithBuf(buf, BUFSIZE, "Mp3ReadStatus = %X %X %X %X\n", Mp3GetStatus[0], Mp3GetStatus[1], Mp3GetStatus[2], Mp3GetStatus[3]); 
                 
         char filename[13];
         int count = 0;
@@ -532,9 +618,50 @@ void Mp3DemoTask(void* pdata)
             count++;
             // Only 8.3 file names supported by SD library            
             memcpy(filename, entry.name(), 13);
+            char longfilename[50] = {0};
+            if (!strcmp(filename, "HOUNDDOG.MP3")) {
+                strcpy(longfilename, "Hound Dog");
+            } else if(!strcmp(filename, "REBELRSR.MP3")) {
+                strcpy(longfilename, "Rebel Rouser");
+            } else if(!strcmp(filename, "BUTIDO.MP3")) {
+                strcpy(longfilename, "(I Don't Know Why) But I Do");
+            } else if(!strcmp(filename, "WALKRTIN.MP3")) {
+                strcpy(longfilename, "Walk Right In");
+            } else if(!strcmp(filename, "LANDDNCS.MP3")) {
+                strcpy(longfilename, "Land Of 1000 Dance");
+            } else if(!strcmp(filename, "BLWNWIND.MP3")) {
+                strcpy(longfilename, "Blowin' In The Wind");
+            } else if(!strcmp(filename, "FORTSON.MP3")) {
+                strcpy(longfilename, "Fortunate Son");
+            } else if(!strcmp(filename, "SUGARPIE.MP3")) {
+                strcpy(longfilename, "I Can't Help Myself");
+            } else if(!strcmp(filename, "RESPECT.MP3")) {
+                strcpy(longfilename, "Respect");
+            } else if(!strcmp(filename, "RAINYDAY.MP3")) {
+                strcpy(longfilename, "Rainy Day Women");
+            } else if(!strcmp(filename, "SLOOPJHN.MP3")) {
+                strcpy(longfilename, "Sloop John B");
+            } else if(!strcmp(filename, "CALIDRMN.MP3")) {
+                strcpy(longfilename, "California Dreamin");
+            } else if(!strcmp(filename, "4WHATW.MP3")) {
+                strcpy(longfilename, "For What It's Worth");
+            } else if(!strcmp(filename, "NOWISLOV.MP3")) {
+                strcpy(longfilename, "What The World Needs Now Is Love");
+            } else if(!strcmp(filename, "BRAKONTH.MP3")) {
+                strcpy(longfilename, "Break On Through");
+            } else if(!strcmp(filename, "MRSROBSN.MP3")) {
+                strcpy(longfilename, "Mrs. Robinson");
+            } else if(!strcmp(filename, "SWTHMALA.MP3")) {
+                strcpy(longfilename, "Sweet Home Alabama");
+            } else if(!strcmp(filename, "JOY2WRLD.MP3")) {
+                strcpy(longfilename, "Joy To The World");
+            } else {
+                strcpy(longfilename, "File Missing from long name data");
+            }
+            
             // song title sending message through mbox
             // Mailbox mbox_mp3: send msg to touch using mailbox mbox_mp3
-            OSMboxPost(mbox_mp3, (void *)&filename);
+            OSMboxPost(mbox_mp3, (void *)&longfilename);
             PrintWithBuf(buf, BUFSIZE, "Mp3:Touch Message sent filename: %d-%s\n", count, filename);
             
             OSTimeDly(50);
@@ -552,47 +679,6 @@ void Mp3DemoTask(void* pdata)
             // Make sure to use timeout or it will wait here for the message to arrive
             msgReceived = (uint8_t*)OSMboxPend(mbox_touch, 50, &err);
             PrintWithBuf(buf, BUFSIZE, "Touch:Mp3 Message received: %d\n", *msgReceived);
-            
-//            uint8_t read_buff[10];
-//            if (*msgReceived == Mp3Vol_Up){
-//                // Now get the volume setting on the device            
-//                Mp3ReadVol(hMp3, read_buff, vol);
-//                // make sure we are not trying to change volume when it is out of range 0 - 100
-//                if (vol > 100) {
-//                    vol = 100;
-//                }
-//                // Max volume is 0, min volume is 100
-//                if (vol > 15) {
-//                    vol -= 15;
-//                    Mp3SetVolume(vol, vol);
-//                } else {
-//                    vol = 0;
-//                    Mp3SetVolume(vol, vol);
-//                }
-//                
-//                PrintWithBuf(buf, BUFSIZE, "Mp3Vol_Up Vol = %d\n", vol);             
-//            } else if (*msgReceived == Mp3Vol_Down){
-//                if (vol < 100) { // no reason to use volumes between 100 and 254 through headphones you cannot hear it
-//                    vol += 15;
-//                    Mp3SetVolume(vol, vol);
-//                } else {
-//                    vol = 100;
-//                    Mp3SetVolume(vol, vol);
-//                }
-//                
-//                PrintWithBuf(buf, BUFSIZE, "Mp3Vol_Down Vol = %d\n", vol);
-//            } else if (*msgReceived == Mp3_Stop){
-//                // Stop playing the Mp3
-//                //uint32_t length = BspMp3DeactLen;
-//                //Write(hMp3, (void*)BspMp3Deact, &length);
-//                Ioctl(hMp3, PJDF_CTRL_MP3_SELECT_COMMAND, 0, 0);
-//                // ??????????
-//                Ioctl(hMp3, PJDF_CTRL_MP3_SELECT_DATA, 0, 0);
-//                
-//                PrintWithBuf(buf, BUFSIZE, "Mp3_Stop received: %d\n", *msgReceived);
-//            } else if (*msgReceived >= Mp3InvalidCmd){
-//                //PrintWithBuf(buf, BUFSIZE, "MP3 Queue: Invalid message received msg %d\n", *msgReceived);
-//            }
         }
         dir.seek(0); // reset directory file to read again;
     }

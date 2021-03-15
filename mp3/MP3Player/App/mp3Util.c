@@ -10,6 +10,7 @@
 #include "bsp.h"
 #include "print.h"
 #include "SD.h"
+#include "mp3Util.h"
 
 void delay(uint32_t time);
 static File dataFile;
@@ -19,6 +20,8 @@ extern BOOLEAN nextSong;
 bool setVolume = false;
 unsigned char leftChannel = 0x10;
 unsigned char rightChannel = 0x10;
+Mp3_Ctrl mp3_control, mp3_last_control;
+char currentSongName[13];
 
 // Mp3GetRegister
 // Gets a register value from the MP3 decoder.
@@ -75,6 +78,30 @@ void Mp3SetVolume(uint8_t leftchannel, uint8_t rightchannel)
     rightChannel = (unsigned char) rightchannel;
 }
 
+// Sets mp3 control state
+void Mp3SetControl(Mp3_Ctrl mp3_ctrl_setting) 
+{
+    // remember last state
+    mp3_last_control = mp3_control; // do not call Mp3GetControl or you could end up in an infinite loop
+    // set new state
+    mp3_control = mp3_ctrl_setting;
+}
+
+// Retrieve mp3 control state if valid, if not valid set state to pause and return pause
+Mp3_Ctrl Mp3GetControl()
+{
+    if(mp3_control){
+        return mp3_control;
+    } else {
+        Mp3SetControl(Mp3_Pause);
+        return mp3_control;
+    }
+}
+
+void Mp3SetCurrentFileName(char *pFilename){
+    strcpy(currentSongName, pFilename);
+}
+
 static void Mp3StreamInit(HANDLE hMp3)
 {
     INT32U length;
@@ -97,6 +124,9 @@ static void Mp3StreamInit(HANDLE hMp3)
    
     // Set MP3 driver to data mode (subsequent writes will be sent to decoder's data interface)
     Ioctl(hMp3, PJDF_CTRL_MP3_SELECT_DATA, 0, 0);
+    
+    // Stream setup complete prepare to play
+    //Mp3SetControl(Mp3_Pause);
 }
 
 // Mp3StreamSDFile
@@ -108,6 +138,7 @@ void Mp3StreamSDFile(HANDLE hMp3, char *pFilename, uint8_t vol)
     INT32U length;
 //    uint16_t Mp3SetVol[] = { 0x02, 0x0B, 0x00, 0x00 };
 //    uint32_t Mp3SetVolLen = sizeof(Mp3SetVol);
+    Mp3SetCurrentFileName(pFilename);
 
     Mp3StreamInit(hMp3);
     
@@ -122,17 +153,18 @@ void Mp3StreamSDFile(HANDLE hMp3, char *pFilename, uint8_t vol)
 
     INT8U mp3Buf[MP3_DECODER_BUF_SIZE];
     INT32U iBufPos = 0;
-    nextSong = OS_FALSE;
+    //nextSong = OS_FALSE;
     while (dataFile.available())
     {
         iBufPos = 0;
-        // set volume control
+        // set volume control - this has to happen in this routine so that volume can be changed any time
         if(setVolume)
         {
             setVolume = false;
             Mp3SetVolumeInternal(hMp3, leftChannel, rightChannel);
         }
         
+        // get data from SD card
         while (dataFile.available() && iBufPos < MP3_DECODER_BUF_SIZE)
         {
             mp3Buf[iBufPos] = dataFile.read();
@@ -140,11 +172,16 @@ void Mp3StreamSDFile(HANDLE hMp3, char *pFilename, uint8_t vol)
             iBufPos++;
         }
 
+        // Send data to mp3 decoder
         Write(hMp3, mp3Buf, &iBufPos);
         
-        if (nextSong)
+        if (mp3_control == Mp3_Skip)
         {
+            Mp3SetControl(mp3_last_control);
             break;
+        }
+        while (Mp3GetControl() == Mp3_Pause) {
+            OSTimeDly(500);
         }
     }
         
