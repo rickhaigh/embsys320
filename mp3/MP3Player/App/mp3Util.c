@@ -133,7 +133,7 @@ static void Mp3StreamInit(HANDLE hMp3)
 // Streams the given file from the SD card to the given MP3 decoder.
 // hMP3: an open handle to the MP3 decoder
 // pFilename: The file on the SD card to stream. 
-void Mp3StreamSDFile(HANDLE hMp3, char *pFilename, uint8_t vol)
+void Mp3StreamSDFile(HANDLE hMp3, char *pFilename)
 {
     INT32U length;
 //    uint16_t Mp3SetVol[] = { 0x02, 0x0B, 0x00, 0x00 };

@@ -667,7 +667,7 @@ void Mp3DemoTask(void* pdata)
             OSTimeDly(50);
             
             // control functions need to have a way to get done in this function or else they will not get done
-            Mp3StreamSDFile(hMp3, entry.name(), 10); 
+            Mp3StreamSDFile(hMp3, entry.name()); 
                         
             entry.close();
             
