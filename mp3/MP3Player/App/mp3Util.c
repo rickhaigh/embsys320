@@ -18,10 +18,12 @@ extern BOOLEAN nextSong;
 
 // volume control (global variables)
 bool setVolume = false;
-unsigned char leftChannel = 0x10;
-unsigned char rightChannel = 0x10;
+unsigned char leftChannel = 20;
+unsigned char rightChannel = 20;
 Mp3_Ctrl mp3_control, mp3_last_control;
 char currentSongName[13];
+static INT32U currentSongPos = 0;
+static INT32U currentSongDuration = 0;
 
 // Mp3GetRegister
 // Gets a register value from the MP3 decoder.
@@ -102,6 +104,22 @@ void Mp3SetCurrentFileName(char *pFilename){
     strcpy(currentSongName, pFilename);
 }
 
+void Mp3SetCurrentSongDuration(INT32U duration) {
+    currentSongDuration = duration;
+}
+
+INT32U Mp3GetCurrentSongDuration() {
+    return currentSongDuration;
+}
+
+void Mp3SetCurrentSongPos(INT32U pos) {
+    currentSongPos = pos;
+}
+
+INT32U Mp3GetCurrentSongPos() {
+    return currentSongPos;
+}
+
 static void Mp3StreamInit(HANDLE hMp3)
 {
     INT32U length;
@@ -150,9 +168,19 @@ void Mp3StreamSDFile(HANDLE hMp3, char *pFilename)
         PrintWithBuf(printBuf, PRINTBUFMAX, "Error: could not open SD card file '%s'\n", pFilename);
         return;
     }
-
+    
+    INT32U filesize = dataFile.size();
     INT8U mp3Buf[MP3_DECODER_BUF_SIZE];
     INT32U iBufPos = 0;
+    INT32U pos = 0;
+    // tick time is approximately 1ms/tick
+    INT32U starttime = OSTimeGet();
+    INT32U endtime;
+    // track position 
+    // 160Kbps = 8*filesize/tracktime => tracktime = 8*filesize/160Kbps
+    // appx 20000 bytes/sec
+    Mp3SetCurrentSongDuration(8 * filesize / 160000);
+    
     //nextSong = OS_FALSE;
     while (dataFile.available())
     {
@@ -171,7 +199,10 @@ void Mp3StreamSDFile(HANDLE hMp3, char *pFilename)
             //delay(30);
             iBufPos++;
         }
-
+        // Keep track of where we are in the buffer
+        pos += iBufPos;
+        Mp3SetCurrentSongPos(pos);
+        
         // Send data to mp3 decoder
         Write(hMp3, mp3Buf, &iBufPos);
         
@@ -184,7 +215,10 @@ void Mp3StreamSDFile(HANDLE hMp3, char *pFilename)
             OSTimeDly(500);
         }
     }
-        
+    
+    PrintWithBuf(printBuf, PRINTBUFMAX, "pos = %d, filesize = %d\n", pos, filesize);
+    endtime = OSTimeGet();
+    PrintWithBuf(printBuf, PRINTBUFMAX, "Song play time (%d - %d) = %d\n", endtime, starttime, endtime - starttime);
     dataFile.close();
     
     Ioctl(hMp3, PJDF_CTRL_MP3_SELECT_COMMAND, 0, 0);

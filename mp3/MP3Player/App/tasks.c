@@ -36,6 +36,8 @@ Adafruit_GFX_Button play_pause_btn = Adafruit_GFX_Button();
 Adafruit_GFX_Button voldn_btn = Adafruit_GFX_Button();
 // Create button to increase Mp3 volume
 Adafruit_GFX_Button volup_btn = Adafruit_GFX_Button();
+// Create button to use for testing
+Adafruit_GFX_Button test_btn = Adafruit_GFX_Button();
 
 // message queue components
 #define QMAXENTRIES 4            // maximum entries in the queue
@@ -167,32 +169,51 @@ void StartupTask(void* pdata)
     PrintWithBuf(buf, BUFSIZE, "StartupTask: deleting self\n");
 	OSTaskDel(OS_PRIO_SELF);
 }
-
-static void drawButtons()
+static void drawPlayPause()
 {
-    InitButtons();  // do this in case button text has changed
-    skip_btn.drawButton(0);
     play_pause_btn.drawButton(0);
-    voldn_btn.drawButton(0);
-    volup_btn.drawButton(0);
-    
-    // Draw pretty button images
     Mp3_Ctrl mp3_control_state = Mp3GetControl();
     if(mp3_control_state == Mp3_Pause) {
+        // First cover up pause button and then draw play button
+        int16_t x1 = 200 - 15;
+        int16_t y1 = 210 - 23;
+        int16_t w = 10;
+        int16_t h = 46;
+        int16_t r = 5;    
+        
+        // Draw pause button 
+        lcdCtrl.fillRoundRect(x1, y1, w, h, r, ILI9341_BLACK);
+        lcdCtrl.fillRoundRect(x1 + 20, y1, w, h, r, ILI9341_BLACK);
+        
         // Play button triangle coords
         // x0 and y0 coords are using button center coords as basis
-        int16_t x0 = 200 - 23;  // started at 23
-        int16_t x1 = x0;
-        int16_t x2 = x0 + 46;
-        int16_t y0 = 210 + 23;
-        int16_t y1 = y0 - 46;
-        int16_t y2 = y0 - 23;
+        int16_t tx0 = 200 - 23;  // started at 23
+        int16_t tx1 = tx0;
+        int16_t tx2 = tx0 + 46;
+        int16_t ty0 = 210 + 23;
+        int16_t ty1 = ty0 - 46;
+        int16_t ty2 = ty0 - 23;
         
         // Draw play button triangle after drawButtons so it will be on top
-        lcdCtrl.fillTriangle (x0, y0,
-                              x1, y1,
-                              x2, y2, ILI9341_WHITE);
+        lcdCtrl.fillTriangle (tx0, ty0,
+                              tx1, ty1,
+                              tx2, ty2, ILI9341_WHITE);
     } else if (mp3_control_state == Mp3_Play) {
+        // First cover up Play button and then draw pause button
+                // Play button triangle coords
+        // x0 and y0 coords are using button center coords as basis
+        int16_t tx0 = 200 - 23;  // started at 23
+        int16_t tx1 = tx0;
+        int16_t tx2 = tx0 + 46;
+        int16_t ty0 = 210 + 23;
+        int16_t ty1 = ty0 - 46;
+        int16_t ty2 = ty0 - 23;
+        
+        // Draw play button triangle after drawButtons so it will be on top
+        lcdCtrl.fillTriangle (tx0, ty0,
+                              tx1, ty1,
+                              tx2, ty2, ILI9341_BLACK);
+        // Now draw pause button
         int16_t x1 = 200 - 15;
         int16_t y1 = 210 - 23;
         int16_t w = 10;
@@ -203,6 +224,70 @@ static void drawButtons()
         lcdCtrl.fillRoundRect(x1, y1, w, h, r, ILI9341_WHITE);
         lcdCtrl.fillRoundRect(x1 + 20, y1, w, h, r, ILI9341_WHITE);
     }
+    
+}
+static void drawButtons()
+{
+    //InitButtons();  // do this in case button text has changed
+    skip_btn.drawButton(0);
+    //play_pause_btn.drawButton(0);
+    voldn_btn.drawButton(0);
+    volup_btn.drawButton(0);
+    test_btn.drawButton(0);
+    
+    // Draw pretty button images
+//    Mp3_Ctrl mp3_control_state = Mp3GetControl();
+//    if(mp3_control_state == Mp3_Pause) {
+//        // First cover up pause button and then draw play button
+//        int16_t x1 = 200 - 15;
+//        int16_t y1 = 210 - 23;
+//        int16_t w = 10;
+//        int16_t h = 46;
+//        int16_t r = 5;    
+//        
+//        // Draw pause button 
+//        lcdCtrl.fillRoundRect(x1, y1, w, h, r, ILI9341_BLACK);
+//        lcdCtrl.fillRoundRect(x1 + 20, y1, w, h, r, ILI9341_BLACK);
+//        
+//        // Play button triangle coords
+//        // x0 and y0 coords are using button center coords as basis
+//        int16_t tx0 = 200 - 23;  // started at 23
+//        int16_t tx1 = tx0;
+//        int16_t tx2 = tx0 + 46;
+//        int16_t ty0 = 210 + 23;
+//        int16_t ty1 = ty0 - 46;
+//        int16_t ty2 = ty0 - 23;
+//        
+//        // Draw play button triangle after drawButtons so it will be on top
+//        lcdCtrl.fillTriangle (tx0, ty0,
+//                              tx1, ty1,
+//                              tx2, ty2, ILI9341_WHITE);
+//    } else if (mp3_control_state == Mp3_Play) {
+//        // First cover up Play button and then draw pause button
+//                // Play button triangle coords
+//        // x0 and y0 coords are using button center coords as basis
+//        int16_t tx0 = 200 - 23;  // started at 23
+//        int16_t tx1 = tx0;
+//        int16_t tx2 = tx0 + 46;
+//        int16_t ty0 = 210 + 23;
+//        int16_t ty1 = ty0 - 46;
+//        int16_t ty2 = ty0 - 23;
+//        
+//        // Draw play button triangle after drawButtons so it will be on top
+//        lcdCtrl.fillTriangle (tx0, ty0,
+//                              tx1, ty1,
+//                              tx2, ty2, ILI9341_BLACK);
+//        // Now draw pause button
+//        int16_t x1 = 200 - 15;
+//        int16_t y1 = 210 - 23;
+//        int16_t w = 10;
+//        int16_t h = 46;
+//        int16_t r = 5;    
+//        
+//        // Draw pause button 
+//        lcdCtrl.fillRoundRect(x1, y1, w, h, r, ILI9341_WHITE);
+//        lcdCtrl.fillRoundRect(x1 + 20, y1, w, h, r, ILI9341_WHITE);
+//    }
     
     // Draw skip button
     // x0 and y0 coords are using button center coords as basis
@@ -296,19 +381,21 @@ static void InitButtons()
                        "Vol -",         // button label
                        2);              // text size
 
+    // Test button
+    test_btn.initButton(
+                       &lcdCtrl,
+                       ILI9341_TFTHEIGHT-40, ILI9341_TFTWIDTH-200, // x, y center of button
+                       75, 55,          // Width, Height
+                       ILI9341_YELLOW,   // Outline
+                       ILI9341_BLACK,   // Fill
+                       ILI9341_YELLOW,   // text color
+                       "Test",         // button label
+                       2);              // text size
 }
 
 static void DrawLcdContents(char *buffer)
 {    
     char buf[BUFSIZE];
-    //char *line1 = "EMBSYS 320";
-    //char *line2 = "MP3 Player";
-    // With textsize = 2
-    // Letter box height = 14, width = 10, spacing = 2
-    //int offsetx1 = strlen(line1) * 14;
-    //int offsetx2 = strlen(line2) * 14;
-    //uint8_t posx1 = (240 / 2) - ((strlen(line1) * 14) / 2);
-    //uint8_t posx2 = (240 / 2) - ((strlen(line2) * 14) / 2);
     
     OS_CPU_SR cpu_sr;
     
@@ -330,7 +417,9 @@ static void DrawLcdContents(char *buffer)
         PrintToLcdWithBuf(buf, BUFSIZE, buffer);
     }
     
-    drawButtons(); // This draws the touchable button shapes    
+    // This draws the touchable button shapes   
+    drawButtons();  
+    drawPlayPause();
     
     OS_EXIT_CRITICAL();
 
@@ -356,9 +445,12 @@ void LcdTouchDemoTask(void* pdata)
     PjdfErrCode pjdfErr;
     INT32U length;
     INT8U err;
-    char temp[13];
-    char *currPlaying = (char*)temp;
-    char *mp3MsgRx = (char*)temp;
+    char temp[50];
+    char temp2[50];
+    char temp3[50];
+    char *lastsong = temp;
+    char *currPlaying = temp2;
+    char *mp3MsgRx = temp3;
     
     char buf[BUFSIZE];
     PrintWithBuf(buf, BUFSIZE, "LcdTouchDemoTask: starting\n");
@@ -417,6 +509,7 @@ void LcdTouchDemoTask(void* pdata)
     while (1) { 
         boolean touched;
         
+        strcpy(lastsong, currPlaying);
         // Receive a message in msgReceived from mbox_touch
         // Make sure to use timeout or it will wait here for the message to arrive
         mp3MsgRx = (char*)OSMboxPend(mbox_mp3, 50, &err);
@@ -426,6 +519,8 @@ void LcdTouchDemoTask(void* pdata)
             DrawLcdContents(currPlaying);
             PrintWithBuf(buf, BUFSIZE, "Mp3 Message Rx: %s\n", currPlaying);
         }
+        // This loop could run pretty fast, so add a little time here to do other things
+        OSTimeDly(20); 
         
         touched = touchCtrl.touched();
         if (! touched) {
@@ -457,11 +552,6 @@ void LcdTouchDemoTask(void* pdata)
         
         touched = touchCtrl.touched();
         
-//        if (currPlaying == NULL) {
-//            DrawLcdContents(NULL);
-//        } else {
-//            DrawLcdContents(currPlaying);
-//        }
         if (skip_btn.contains(p.x, p.y)) {
             // clear screen and start over
             Mp3SetControl(Mp3_Skip);
@@ -469,7 +559,6 @@ void LcdTouchDemoTask(void* pdata)
         }
         
         if (volup_btn.contains(p.x, p.y)) {
-            uint8_t cmd = Mp3Vol_Up;
             // make sure we are not trying to change volume when it is out of range 0 - 125
             if (mp3vol > 125) {
                 mp3vol = 125;
@@ -484,20 +573,14 @@ void LcdTouchDemoTask(void* pdata)
             }
             
             // Mailbox mbox_touch: send msg to MP3 using mailbox mbox_touch
-            OSMboxPost(mbox_touch, (void *)&cmd);
-                        
-            // Set volume by sending message through queue
-            //length = BspMp3SetVol1010Len;
-            //Write(hMp3, (void*)BspMp3SetVol1010, &length);
-                        
-            PrintWithBuf(buf, BUFSIZE, "Touch:Mp3 Message sent Mp3Vol_Up: %d\n", cmd);
+            //OSMboxPost(mbox_touch, (void *)&cmd);
+            //PrintWithBuf(buf, BUFSIZE, "Touch:Mp3 Message sent Mp3Vol_Up: %d\n", cmd);
             //err = OS_ERR_NONE;
                         
             OSTimeDly(90);    
         }
         
         if (voldn_btn.contains(p.x, p.y)) {
-            uint8_t cmd = Mp3Vol_Down;
             // make sure we are not trying to change volume when it is out of range 0 - 100
             if (mp3vol < 125) { // no reason to use volumes between 100 and 254 through headphones you cannot hear it
                 mp3vol += 5;
@@ -506,10 +589,6 @@ void LcdTouchDemoTask(void* pdata)
                 mp3vol = 125;  
                 Mp3SetVolume(mp3vol, mp3vol);
             }
-            // Set volume by sending message through queue
-            // Mailbox mbox_touch: send msg to MP3 using mailbox mbox_touch
-            OSMboxPost(mbox_touch, (void *)&cmd);
-            PrintWithBuf(buf, BUFSIZE, "Touch:Mp3 Message sent Mp3Vol_Down: %d\n", cmd);
             
             OSTimeDly(90);    
         }
@@ -524,16 +603,20 @@ void LcdTouchDemoTask(void* pdata)
                 Mp3SetControl(Mp3_Play);
             }
             // refresh play pause button on the screen and keep current song on the screen
-            DrawLcdContents(currPlaying);
-            // Set play pause state by sending message through queue
-            // Mailbox mbox_touch: send msg to MP3 using mailbox mbox_touch
-            //OSMboxPost(mbox_touch, (void *)&cmd);
-            //PrintWithBuf(buf, BUFSIZE, "Mp3 Message sent Mp3_Stop: %d\n", cmd);
+            //DrawLcdContents(currPlaying);
+            drawPlayPause();
             
             OSTimeDly(200); // need enough time to debounce   
         }    
         
-        // PrintWithBuf(buf, BUFSIZE, "input: (%d, %d) :: map:(%d, %d)\n", point.x, point.y, p.x, p.y);
+        if (test_btn.contains(p.x, p.y)) {
+            lcdCtrl.setCursor(40, 60);
+            lcdCtrl.setTextColor(ILI9341_BLUE);  
+            lcdCtrl.setTextSize(2);
+    
+            PrintToLcdWithBuf(buf, BUFSIZE, currPlaying);
+    
+        }
         
         
     }
